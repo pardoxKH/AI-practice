@@ -1,0 +1,27 @@
+project_id,week_start,status,progress_pct,summary,key_risks_issues,next_steps,updated_by
+P001,2026-09-14,On track,32,Triage model v1 trained on 2024-25 claims; baseline F1 0.78,,Start integration with claims system,omar.saleh@firm.com
+P001,2026-09-21,On track,36,Integration design agreed with Acme IT,,Build claims API connector,omar.saleh@firm.com
+P001,2026-09-28,At risk,40,Connector build started; production claims extract still pending,Client data access delayed by security review,Escalate data access via sponsor,omar.saleh@firm.com
+P001,2026-10-05,At risk,45,Model v2 deployed to UAT on sample data,Client data access still delayed; ML Engineer capacity short by ~0.9 FTE,UAT sign-off by 20 Oct; confirm data access,omar.saleh@firm.com
+P002,2026-09-14,On track,58,Intent classifier v3 live in pilot call centre,,Expand to billing intents,rania.khoury@firm.com
+P002,2026-09-21,On track,62,Billing intents added; CSAT up 6 pts in pilot,,Arabic dialect tuning,rania.khoury@firm.com
+P002,2026-09-28,On track,66,Gulf dialect tuning complete,,Prepare rollout plan,rania.khoury@firm.com
+P002,2026-10-05,On track,70,Rollout plan approved by client steering committee,,Wave 1 rollout 19 Oct,rania.khoury@firm.com
+P003,2026-09-14,On track,15,Data ingestion from 3 of 5 ERP sources,,Ingest remaining sources,faisal.alotaibi@firm.com
+P003,2026-09-21,At risk,18,ERP source 4 schema changes uncovered,Data scientist on leave; source schema drift,Re-plan data workstream,faisal.alotaibi@firm.com
+P003,2026-09-28,Off track,21,Baseline model delayed by two weeks,Data scientist on leave; no MLOps support assigned; schema drift,Request backfill hire; re-baseline with client,faisal.alotaibi@firm.com
+P003,2026-10-05,Off track,25,Re-baseline proposed: forecast end moved to mid-March,"Two open hires needed (Data Scientist, MLOps); client not yet agreed to new date",Steering committee 14 Oct,faisal.alotaibi@firm.com
+P004,2026-09-14,On track,6,Kick-off done; document samples received,,OCR benchmark,sami.nassar@firm.com
+P004,2026-09-21,On track,9,OCR benchmark on 2k Arabic/English IDs,,Select extraction approach,sami.nassar@firm.com
+P004,2026-09-28,On track,12,Extraction approach signed off,,Build pipeline v0,sami.nassar@firm.com
+P004,2026-10-05,On track,15,Pipeline v0 running in dev,,Data Engineer hires needed for Dec scale-up,sami.nassar@firm.com
+P005,2026-09-21,On track,20,Clause taxonomy agreed (42 clause types),,Label 300 contracts,khalid.alharbi@firm.com
+P005,2026-09-28,On track,40,300 contracts labelled; first extraction run at 0.81 accuracy,,Demo to client legal team,khalid.alharbi@firm.com
+P006,2026-08-31,At risk,90,Final model validated; report drafting,Sensor data gaps delayed report,Final readout,ahmad.barakat@firm.com
+P006,2026-09-14,Completed,100,Final readout delivered; client requested rollout proposal (O005),,Hand over to presales,ahmad.barakat@firm.com
+P007,2026-09-14,On track,40,Ingestion and chunking modules done,,Retrieval evaluation,huda.mansour@firm.com
+P007,2026-09-21,On track,45,Hybrid retrieval benchmarked,,Arabic embeddings comparison,huda.mansour@firm.com
+P007,2026-09-28,On track,50,Arabic embeddings comparison complete,,Package as template repo,huda.mansour@firm.com
+P007,2026-10-05,On track,55,Template repo v0.1 shared internally,,Pilot reuse on P005,huda.mansour@firm.com
+P008,2026-09-07,On track,30,Eval metrics library drafted,,Paused pending staffing,lina.haddad@firm.com
+P008,2026-09-14,On hold,30,Paused: team reassigned to client work,,Resume in Q1 2027,lina.haddad@firm.com

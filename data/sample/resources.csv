@@ -1,0 +1,19 @@
+resource_id,full_name,email,employment_type,profile,seniority,skills,line_manager,join_date,status
+R001,Omar Saleh,omar.saleh@firm.com,FTE,AI Architect,Lead,LLM architecture; Azure; Solution design,Tariq K.,2023-02-01,Active
+R002,Lina Haddad,lina.haddad@firm.com,FTE,ML Engineer,Senior,NLP; LLMOps; Azure,Omar Saleh,2024-03-01,Active
+R003,Rania Khoury,rania.khoury@firm.com,FTE,Project Manager,Senior,Agile delivery; PMP; Stakeholder management,Tariq K.,2023-09-10,Active
+R004,Faisal Alotaibi,faisal.alotaibi@firm.com,FTE,Data Scientist,Senior,Forecasting; Time series; Python,Tariq K.,2023-05-14,Active
+R005,Huda Mansour,huda.mansour@firm.com,FTE,GenAI Engineer,Mid,RAG; LangChain; Prompt engineering,Omar Saleh,2025-01-12,Active
+R006,Yazan Qasem,yazan.qasem@firm.com,FTE,Data Engineer,Mid,Spark; Databricks; SQL,Sami Nassar,2024-06-02,Active
+R007,Noura Alshehri,noura.alshehri@firm.com,FTE,ML Engineer,Mid,Speech; Arabic NLP; PyTorch,Rania Khoury,2024-10-06,Active
+R008,Ahmad Barakat,ahmad.barakat@firm.com,FTE,MLOps Engineer,Senior,Kubernetes; MLflow; CI/CD,Omar Saleh,2023-11-19,Active
+R009,Dana Ibrahim,dana.ibrahim@firm.com,FTE,Data Scientist,Mid,Computer vision; Python; Statistics,Faisal Alotaibi,2024-08-18,On leave
+R010,Sami Nassar,sami.nassar@firm.com,FTE,AI Architect,Senior,Document AI; OCR; AWS,Tariq K.,2024-01-07,Active
+R011,Maya Tannous,maya.tannous@firm.com,FTE,Data Engineer,Junior,Python; Airflow; SQL,Sami Nassar,2025-09-01,Active
+R012,Khalid Alharbi,khalid.alharbi@firm.com,FTE,GenAI Engineer,Senior,LLM fine-tuning; Agents; Arabic NLP,Omar Saleh,2026-09-01,Active
+R013,Reem Aldosari,reem.aldosari@firm.com,Trainee,Data Scientist,Junior,Python; Pandas,Faisal Alotaibi,2026-07-01,Active
+R014,Hamza Odeh,hamza.odeh@firm.com,Trainee,ML Engineer,Junior,Python; Scikit-learn,Lina Haddad,2026-07-01,Active
+R015,Sara Alqahtani,sara.alqahtani@firm.com,Trainee,Data Engineer,Junior,SQL; Python,Yazan Qasem,2026-07-01,Active
+R016,Tamer Fawzi,tamer.fawzi@firm.com,Trainee,GenAI Engineer,Junior,Python; Prompt engineering,Huda Mansour,2026-07-01,Active
+R017,Jana Saeed,jana.saeed@firm.com,Trainee,Data Scientist,Junior,Python; Statistics,Sami Nassar,2026-07-01,Active
+R018,Bilal Hourani,bilal.hourani@firm.com,FTE,ML Engineer,Mid,Recommender systems; Python,Omar Saleh,2024-02-11,Exited

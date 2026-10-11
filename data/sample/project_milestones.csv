@@ -1,0 +1,20 @@
+project_id,milestone,planned_date,actual_date
+P001,Data access granted,2026-07-20,2026-07-28
+P001,Model v1 trained,2026-09-05,2026-09-10
+P001,UAT sign-off,2026-10-20,
+P001,Production go-live,2026-12-15,
+P002,Pilot launch,2026-07-15,2026-07-15
+P002,Rollout plan approved,2026-10-01,2026-10-05
+P002,Wave 1 rollout,2026-10-19,
+P002,Handover to client ops,2026-11-30,
+P003,All ERP sources ingested,2026-09-15,
+P003,Baseline model,2026-10-01,
+P003,Pilot in 10 stores,2026-12-01,
+P004,OCR benchmark,2026-09-20,2026-09-21
+P004,Pipeline v1 in UAT,2026-12-15,
+P004,Production go-live,2027-02-15,
+P005,Clause taxonomy,2026-09-20,2026-09-20
+P005,Client demo,2026-10-15,
+P006,Final readout,2026-08-31,2026-09-14
+P007,Template repo v1.0,2026-11-30,
+P008,Metrics library v1,2026-09-30,

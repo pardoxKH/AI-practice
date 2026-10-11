@@ -1,0 +1,264 @@
+email,period_type,period_start,engagement_type,client_name,project_id,utilization_pct
+omar.saleh@firm.com,Week,2026-08-31,Project,Acme Insurance,P001,45
+omar.saleh@firm.com,Week,2026-08-31,Investment,Internal,P007,20
+omar.saleh@firm.com,Week,2026-08-31,Presales,Al Shifa Hospitals,,5
+omar.saleh@firm.com,Week,2026-08-31,Presales,Capital Region Municipality,,5
+omar.saleh@firm.com,Week,2026-08-31,Bench,,,25
+omar.saleh@firm.com,Week,2026-09-07,Project,Acme Insurance,P001,50
+omar.saleh@firm.com,Week,2026-09-07,Investment,Internal,P007,15
+omar.saleh@firm.com,Week,2026-09-07,Presales,Al Shifa Hospitals,,5
+omar.saleh@firm.com,Week,2026-09-07,Presales,Capital Region Municipality,,10
+omar.saleh@firm.com,Week,2026-09-07,Bench,,,20
+omar.saleh@firm.com,Week,2026-09-14,Project,Acme Insurance,P001,45
+omar.saleh@firm.com,Week,2026-09-14,Investment,Internal,P007,20
+omar.saleh@firm.com,Week,2026-09-14,Presales,Al Shifa Hospitals,,5
+omar.saleh@firm.com,Week,2026-09-14,Presales,Capital Region Municipality,,10
+omar.saleh@firm.com,Week,2026-09-14,Bench,,,20
+omar.saleh@firm.com,Week,2026-09-21,Project,Acme Insurance,P001,45
+omar.saleh@firm.com,Week,2026-09-21,Investment,Internal,P007,20
+omar.saleh@firm.com,Week,2026-09-21,Presales,Al Shifa Hospitals,,5
+omar.saleh@firm.com,Week,2026-09-21,Presales,Capital Region Municipality,,10
+omar.saleh@firm.com,Week,2026-09-21,Bench,,,20
+omar.saleh@firm.com,Week,2026-09-28,Project,Acme Insurance,P001,50
+omar.saleh@firm.com,Week,2026-09-28,Investment,Internal,P007,20
+omar.saleh@firm.com,Week,2026-09-28,Presales,Al Shifa Hospitals,,5
+omar.saleh@firm.com,Week,2026-09-28,Presales,Capital Region Municipality,,15
+omar.saleh@firm.com,Week,2026-09-28,Bench,,,10
+omar.saleh@firm.com,Week,2026-10-05,Project,Acme Insurance,P001,45
+omar.saleh@firm.com,Week,2026-10-05,Investment,Internal,P007,20
+omar.saleh@firm.com,Week,2026-10-05,Presales,Al Shifa Hospitals,,10
+omar.saleh@firm.com,Week,2026-10-05,Presales,Capital Region Municipality,,10
+omar.saleh@firm.com,Week,2026-10-05,Bench,,,15
+lina.haddad@firm.com,Week,2026-08-31,Project,Acme Insurance,P001,55
+lina.haddad@firm.com,Week,2026-08-31,Investment,Internal,P008,40
+lina.haddad@firm.com,Week,2026-09-07,Leave,,,100
+lina.haddad@firm.com,Week,2026-09-14,Project,Acme Insurance,P001,60
+lina.haddad@firm.com,Week,2026-09-14,Project,Al Noor Holding,P005,40
+lina.haddad@firm.com,Week,2026-09-21,Project,Acme Insurance,P001,60
+lina.haddad@firm.com,Week,2026-09-21,Project,Al Noor Holding,P005,35
+lina.haddad@firm.com,Week,2026-09-28,Project,Acme Insurance,P001,60
+lina.haddad@firm.com,Week,2026-09-28,Project,Al Noor Holding,P005,35
+lina.haddad@firm.com,Week,2026-10-05,Project,Acme Insurance,P001,50
+lina.haddad@firm.com,Week,2026-10-05,Project,Al Noor Holding,P005,40
+lina.haddad@firm.com,Week,2026-10-05,Bench,,,10
+rania.khoury@firm.com,Week,2026-08-31,Project,Gulf Telecom,P002,60
+rania.khoury@firm.com,Week,2026-08-31,Project,Riyadh Capital Bank,P004,40
+rania.khoury@firm.com,Week,2026-09-07,Project,Gulf Telecom,P002,55
+rania.khoury@firm.com,Week,2026-09-07,Project,Riyadh Capital Bank,P004,40
+rania.khoury@firm.com,Week,2026-09-14,Project,Gulf Telecom,P002,60
+rania.khoury@firm.com,Week,2026-09-14,Project,Riyadh Capital Bank,P004,40
+rania.khoury@firm.com,Week,2026-09-21,Project,Gulf Telecom,P002,60
+rania.khoury@firm.com,Week,2026-09-21,Project,Riyadh Capital Bank,P004,35
+rania.khoury@firm.com,Week,2026-09-28,Project,Gulf Telecom,P002,55
+rania.khoury@firm.com,Week,2026-09-28,Project,Riyadh Capital Bank,P004,35
+rania.khoury@firm.com,Week,2026-09-28,Bench,,,10
+rania.khoury@firm.com,Week,2026-10-05,Project,Gulf Telecom,P002,60
+rania.khoury@firm.com,Week,2026-10-05,Project,Riyadh Capital Bank,P004,35
+faisal.alotaibi@firm.com,Week,2026-08-31,Project,Najd Retail Group,P003,60
+faisal.alotaibi@firm.com,Week,2026-08-31,Project,Eastern Petrochemical Co.,P006,30
+faisal.alotaibi@firm.com,Week,2026-08-31,Presales,Al Shifa Hospitals,,10
+faisal.alotaibi@firm.com,Week,2026-09-07,Project,Najd Retail Group,P003,70
+faisal.alotaibi@firm.com,Week,2026-09-07,Presales,Al Shifa Hospitals,,10
+faisal.alotaibi@firm.com,Week,2026-09-07,Bench,,,20
+faisal.alotaibi@firm.com,Week,2026-09-14,Project,Najd Retail Group,P003,70
+faisal.alotaibi@firm.com,Week,2026-09-14,Presales,Al Shifa Hospitals,,5
+faisal.alotaibi@firm.com,Week,2026-09-14,Bench,,,25
+faisal.alotaibi@firm.com,Week,2026-09-21,Project,Najd Retail Group,P003,60
+faisal.alotaibi@firm.com,Week,2026-09-21,Presales,Al Shifa Hospitals,,15
+faisal.alotaibi@firm.com,Week,2026-09-21,Bench,,,25
+faisal.alotaibi@firm.com,Week,2026-09-28,Project,Najd Retail Group,P003,60
+faisal.alotaibi@firm.com,Week,2026-09-28,Presales,Al Shifa Hospitals,,10
+faisal.alotaibi@firm.com,Week,2026-09-28,Bench,,,30
+faisal.alotaibi@firm.com,Week,2026-10-05,Project,Najd Retail Group,P003,60
+faisal.alotaibi@firm.com,Week,2026-10-05,Presales,Al Shifa Hospitals,,15
+faisal.alotaibi@firm.com,Week,2026-10-05,Bench,,,25
+huda.mansour@firm.com,Week,2026-08-31,Project,Acme Insurance,P001,45
+huda.mansour@firm.com,Week,2026-08-31,Investment,Internal,P007,50
+huda.mansour@firm.com,Week,2026-08-31,Presales,Gulf Telecom,,5
+huda.mansour@firm.com,Week,2026-09-07,Project,Acme Insurance,P001,45
+huda.mansour@firm.com,Week,2026-09-07,Investment,Internal,P007,45
+huda.mansour@firm.com,Week,2026-09-07,Presales,Gulf Telecom,,10
+huda.mansour@firm.com,Week,2026-09-14,Project,Acme Insurance,P001,40
+huda.mansour@firm.com,Week,2026-09-14,Investment,Internal,P007,45
+huda.mansour@firm.com,Week,2026-09-14,Presales,Gulf Telecom,,15
+huda.mansour@firm.com,Week,2026-09-21,Project,Acme Insurance,P001,50
+huda.mansour@firm.com,Week,2026-09-21,Investment,Internal,P007,45
+huda.mansour@firm.com,Week,2026-09-21,Presales,Gulf Telecom,,5
+huda.mansour@firm.com,Week,2026-09-28,Project,Acme Insurance,P001,50
+huda.mansour@firm.com,Week,2026-09-28,Investment,Internal,P007,45
+huda.mansour@firm.com,Week,2026-09-28,Presales,Gulf Telecom,,5
+huda.mansour@firm.com,Week,2026-10-05,Project,Acme Insurance,P001,40
+huda.mansour@firm.com,Week,2026-10-05,Investment,Internal,P007,45
+huda.mansour@firm.com,Week,2026-10-05,Presales,Gulf Telecom,,15
+yazan.qasem@firm.com,Week,2026-08-31,Project,Gulf Telecom,P002,45
+yazan.qasem@firm.com,Week,2026-08-31,Project,Riyadh Capital Bank,P004,45
+yazan.qasem@firm.com,Week,2026-08-31,Bench,,,10
+yazan.qasem@firm.com,Week,2026-09-07,Project,Gulf Telecom,P002,50
+yazan.qasem@firm.com,Week,2026-09-07,Project,Riyadh Capital Bank,P004,45
+yazan.qasem@firm.com,Week,2026-09-14,Project,Gulf Telecom,P002,45
+yazan.qasem@firm.com,Week,2026-09-14,Project,Riyadh Capital Bank,P004,45
+yazan.qasem@firm.com,Week,2026-09-14,Bench,,,10
+yazan.qasem@firm.com,Week,2026-09-21,Leave,,,100
+yazan.qasem@firm.com,Week,2026-09-28,Project,Gulf Telecom,P002,45
+yazan.qasem@firm.com,Week,2026-09-28,Project,Riyadh Capital Bank,P004,45
+yazan.qasem@firm.com,Week,2026-09-28,Bench,,,10
+yazan.qasem@firm.com,Week,2026-10-05,Project,Gulf Telecom,P002,50
+yazan.qasem@firm.com,Week,2026-10-05,Project,Riyadh Capital Bank,P004,45
+noura.alshehri@firm.com,Week,2026-08-31,Project,Gulf Telecom,P002,90
+noura.alshehri@firm.com,Week,2026-08-31,Bench,,,10
+noura.alshehri@firm.com,Week,2026-09-07,Project,Gulf Telecom,P002,95
+noura.alshehri@firm.com,Week,2026-09-14,Project,Gulf Telecom,P002,100
+noura.alshehri@firm.com,Week,2026-09-21,Project,Gulf Telecom,P002,85
+noura.alshehri@firm.com,Week,2026-09-21,Bench,,,15
+noura.alshehri@firm.com,Week,2026-09-28,Project,Gulf Telecom,P002,95
+noura.alshehri@firm.com,Week,2026-10-05,Project,Gulf Telecom,P002,95
+ahmad.barakat@firm.com,Week,2026-08-31,Project,Riyadh Capital Bank,P004,45
+ahmad.barakat@firm.com,Week,2026-08-31,Project,Eastern Petrochemical Co.,P006,45
+ahmad.barakat@firm.com,Week,2026-08-31,Presales,Eastern Petrochemical Co.,,10
+ahmad.barakat@firm.com,Week,2026-09-07,Project,Riyadh Capital Bank,P004,40
+ahmad.barakat@firm.com,Week,2026-09-07,Project,Eastern Petrochemical Co.,P006,45
+ahmad.barakat@firm.com,Week,2026-09-07,Presales,Eastern Petrochemical Co.,,15
+ahmad.barakat@firm.com,Week,2026-09-14,Project,Riyadh Capital Bank,P004,45
+ahmad.barakat@firm.com,Week,2026-09-14,Project,Eastern Petrochemical Co.,P006,45
+ahmad.barakat@firm.com,Week,2026-09-14,Presales,Eastern Petrochemical Co.,,10
+ahmad.barakat@firm.com,Week,2026-09-21,Project,Riyadh Capital Bank,P004,45
+ahmad.barakat@firm.com,Week,2026-09-21,Presales,Eastern Petrochemical Co.,,10
+ahmad.barakat@firm.com,Week,2026-09-21,Bench,,,45
+ahmad.barakat@firm.com,Week,2026-09-28,Project,Riyadh Capital Bank,P004,45
+ahmad.barakat@firm.com,Week,2026-09-28,Presales,Eastern Petrochemical Co.,,10
+ahmad.barakat@firm.com,Week,2026-09-28,Bench,,,45
+ahmad.barakat@firm.com,Week,2026-10-05,Project,Riyadh Capital Bank,P004,45
+ahmad.barakat@firm.com,Week,2026-10-05,Presales,Eastern Petrochemical Co.,,5
+ahmad.barakat@firm.com,Week,2026-10-05,Bench,,,50
+dana.ibrahim@firm.com,Week,2026-08-31,Project,Najd Retail Group,P003,90
+dana.ibrahim@firm.com,Week,2026-08-31,Bench,,,10
+dana.ibrahim@firm.com,Week,2026-09-07,Project,Najd Retail Group,P003,95
+dana.ibrahim@firm.com,Week,2026-09-14,Project,Najd Retail Group,P003,95
+dana.ibrahim@firm.com,Week,2026-09-21,Leave,,,100
+dana.ibrahim@firm.com,Week,2026-09-28,Leave,,,100
+dana.ibrahim@firm.com,Week,2026-10-05,Leave,,,100
+sami.nassar@firm.com,Week,2026-08-31,Project,Riyadh Capital Bank,P004,75
+sami.nassar@firm.com,Week,2026-08-31,Presales,Eastern Petrochemical Co.,,10
+sami.nassar@firm.com,Week,2026-08-31,Presales,Capital Region Municipality,,5
+sami.nassar@firm.com,Week,2026-08-31,Bench,,,10
+sami.nassar@firm.com,Week,2026-09-07,Project,Riyadh Capital Bank,P004,70
+sami.nassar@firm.com,Week,2026-09-07,Presales,Eastern Petrochemical Co.,,15
+sami.nassar@firm.com,Week,2026-09-07,Presales,Capital Region Municipality,,15
+sami.nassar@firm.com,Week,2026-09-14,Project,Riyadh Capital Bank,P004,75
+sami.nassar@firm.com,Week,2026-09-14,Presales,Eastern Petrochemical Co.,,5
+sami.nassar@firm.com,Week,2026-09-14,Presales,Capital Region Municipality,,15
+sami.nassar@firm.com,Week,2026-09-21,Project,Riyadh Capital Bank,P004,80
+sami.nassar@firm.com,Week,2026-09-21,Presales,Eastern Petrochemical Co.,,5
+sami.nassar@firm.com,Week,2026-09-21,Presales,Capital Region Municipality,,10
+sami.nassar@firm.com,Week,2026-09-28,Project,Riyadh Capital Bank,P004,70
+sami.nassar@firm.com,Week,2026-09-28,Presales,Eastern Petrochemical Co.,,10
+sami.nassar@firm.com,Week,2026-09-28,Presales,Capital Region Municipality,,15
+sami.nassar@firm.com,Week,2026-10-05,Project,Riyadh Capital Bank,P004,70
+sami.nassar@firm.com,Week,2026-10-05,Presales,Eastern Petrochemical Co.,,10
+sami.nassar@firm.com,Week,2026-10-05,Presales,Capital Region Municipality,,5
+sami.nassar@firm.com,Week,2026-10-05,Bench,,,15
+maya.tannous@firm.com,Week,2026-08-31,Project,Najd Retail Group,P003,85
+maya.tannous@firm.com,Week,2026-08-31,Bench,,,15
+maya.tannous@firm.com,Week,2026-09-07,Project,Najd Retail Group,P003,95
+maya.tannous@firm.com,Week,2026-09-14,Project,Najd Retail Group,P003,95
+maya.tannous@firm.com,Week,2026-09-21,Project,Najd Retail Group,P003,100
+maya.tannous@firm.com,Week,2026-09-28,Project,Najd Retail Group,P003,95
+maya.tannous@firm.com,Week,2026-10-05,Leave,,,100
+khalid.alharbi@firm.com,Week,2026-08-31,Project,Gulf Telecom,P002,50
+khalid.alharbi@firm.com,Week,2026-08-31,Presales,Gulf Telecom,,10
+khalid.alharbi@firm.com,Week,2026-08-31,Presales,Al Noor Holding,,15
+khalid.alharbi@firm.com,Week,2026-08-31,Bench,,,25
+khalid.alharbi@firm.com,Week,2026-09-07,Project,Gulf Telecom,P002,55
+khalid.alharbi@firm.com,Week,2026-09-07,Presales,Gulf Telecom,,10
+khalid.alharbi@firm.com,Week,2026-09-07,Presales,Al Noor Holding,,10
+khalid.alharbi@firm.com,Week,2026-09-07,Bench,,,25
+khalid.alharbi@firm.com,Week,2026-09-14,Project,Gulf Telecom,P002,50
+khalid.alharbi@firm.com,Week,2026-09-14,Project,Al Noor Holding,P005,35
+khalid.alharbi@firm.com,Week,2026-09-14,Presales,Gulf Telecom,,5
+khalid.alharbi@firm.com,Week,2026-09-14,Presales,Al Noor Holding,,10
+khalid.alharbi@firm.com,Week,2026-09-21,Project,Gulf Telecom,P002,50
+khalid.alharbi@firm.com,Week,2026-09-21,Project,Al Noor Holding,P005,30
+khalid.alharbi@firm.com,Week,2026-09-21,Presales,Gulf Telecom,,10
+khalid.alharbi@firm.com,Week,2026-09-21,Presales,Al Noor Holding,,10
+khalid.alharbi@firm.com,Week,2026-09-28,Project,Gulf Telecom,P002,40
+khalid.alharbi@firm.com,Week,2026-09-28,Project,Al Noor Holding,P005,25
+khalid.alharbi@firm.com,Week,2026-09-28,Investment,Internal,P007,15
+khalid.alharbi@firm.com,Week,2026-09-28,Presales,Gulf Telecom,,10
+khalid.alharbi@firm.com,Week,2026-09-28,Presales,Al Noor Holding,,10
+khalid.alharbi@firm.com,Week,2026-10-05,Project,Gulf Telecom,P002,45
+khalid.alharbi@firm.com,Week,2026-10-05,Project,Al Noor Holding,P005,25
+khalid.alharbi@firm.com,Week,2026-10-05,Investment,Internal,P007,10
+khalid.alharbi@firm.com,Week,2026-10-05,Presales,Gulf Telecom,,10
+khalid.alharbi@firm.com,Week,2026-10-05,Presales,Al Noor Holding,,10
+reem.aldosari@firm.com,Week,2026-08-31,Project,Najd Retail Group,P003,90
+reem.aldosari@firm.com,Week,2026-08-31,Other,,,10
+reem.aldosari@firm.com,Week,2026-09-07,Project,Najd Retail Group,P003,90
+reem.aldosari@firm.com,Week,2026-09-07,Other,,,10
+reem.aldosari@firm.com,Week,2026-09-14,Project,Najd Retail Group,P003,90
+reem.aldosari@firm.com,Week,2026-09-14,Other,,,10
+reem.aldosari@firm.com,Week,2026-09-21,Project,Najd Retail Group,P003,90
+reem.aldosari@firm.com,Week,2026-09-21,Other,,,10
+reem.aldosari@firm.com,Week,2026-09-28,Project,Najd Retail Group,P003,90
+reem.aldosari@firm.com,Week,2026-09-28,Other,,,10
+reem.aldosari@firm.com,Week,2026-10-05,Project,Najd Retail Group,P003,85
+reem.aldosari@firm.com,Week,2026-10-05,Other,,,10
+hamza.odeh@firm.com,Week,2026-08-31,Project,Acme Insurance,P001,50
+hamza.odeh@firm.com,Week,2026-08-31,Other,,,10
+hamza.odeh@firm.com,Week,2026-08-31,Bench,,,40
+hamza.odeh@firm.com,Week,2026-09-07,Project,Acme Insurance,P001,50
+hamza.odeh@firm.com,Week,2026-09-07,Other,,,10
+hamza.odeh@firm.com,Week,2026-09-07,Bench,,,40
+hamza.odeh@firm.com,Week,2026-09-14,Project,Acme Insurance,P001,50
+hamza.odeh@firm.com,Week,2026-09-14,Other,,,10
+hamza.odeh@firm.com,Week,2026-09-14,Bench,,,40
+hamza.odeh@firm.com,Week,2026-09-21,Project,Acme Insurance,P001,45
+hamza.odeh@firm.com,Week,2026-09-21,Other,,,10
+hamza.odeh@firm.com,Week,2026-09-21,Bench,,,45
+hamza.odeh@firm.com,Week,2026-09-28,Project,Acme Insurance,P001,45
+hamza.odeh@firm.com,Week,2026-09-28,Other,,,10
+hamza.odeh@firm.com,Week,2026-09-28,Bench,,,45
+hamza.odeh@firm.com,Week,2026-10-05,Project,Acme Insurance,P001,50
+hamza.odeh@firm.com,Week,2026-10-05,Other,,,10
+hamza.odeh@firm.com,Week,2026-10-05,Bench,,,40
+sara.alqahtani@firm.com,Week,2026-08-31,Investment,Internal,P007,50
+sara.alqahtani@firm.com,Week,2026-08-31,Other,,,10
+sara.alqahtani@firm.com,Week,2026-08-31,Bench,,,40
+sara.alqahtani@firm.com,Week,2026-09-07,Investment,Internal,P007,50
+sara.alqahtani@firm.com,Week,2026-09-07,Other,,,10
+sara.alqahtani@firm.com,Week,2026-09-07,Bench,,,40
+sara.alqahtani@firm.com,Week,2026-09-14,Project,Al Noor Holding,P005,45
+sara.alqahtani@firm.com,Week,2026-09-14,Investment,Internal,P007,45
+sara.alqahtani@firm.com,Week,2026-09-14,Other,,,10
+sara.alqahtani@firm.com,Week,2026-09-21,Project,Al Noor Holding,P005,45
+sara.alqahtani@firm.com,Week,2026-09-21,Investment,Internal,P007,45
+sara.alqahtani@firm.com,Week,2026-09-21,Other,,,10
+sara.alqahtani@firm.com,Week,2026-09-28,Project,Al Noor Holding,P005,45
+sara.alqahtani@firm.com,Week,2026-09-28,Investment,Internal,P007,45
+sara.alqahtani@firm.com,Week,2026-09-28,Other,,,10
+sara.alqahtani@firm.com,Week,2026-10-05,Project,Al Noor Holding,P005,45
+sara.alqahtani@firm.com,Week,2026-10-05,Investment,Internal,P007,45
+sara.alqahtani@firm.com,Week,2026-10-05,Other,,,10
+tamer.fawzi@firm.com,Week,2026-08-31,Project,Gulf Telecom,P002,90
+tamer.fawzi@firm.com,Week,2026-08-31,Other,,,10
+tamer.fawzi@firm.com,Week,2026-09-07,Project,Gulf Telecom,P002,90
+tamer.fawzi@firm.com,Week,2026-09-07,Other,,,10
+tamer.fawzi@firm.com,Week,2026-09-14,Project,Gulf Telecom,P002,90
+tamer.fawzi@firm.com,Week,2026-09-14,Other,,,10
+tamer.fawzi@firm.com,Week,2026-09-21,Project,Gulf Telecom,P002,90
+tamer.fawzi@firm.com,Week,2026-09-21,Other,,,10
+tamer.fawzi@firm.com,Week,2026-09-28,Project,Gulf Telecom,P002,90
+tamer.fawzi@firm.com,Week,2026-09-28,Other,,,10
+tamer.fawzi@firm.com,Week,2026-10-05,Project,Gulf Telecom,P002,90
+tamer.fawzi@firm.com,Week,2026-10-05,Other,,,10
+jana.saeed@firm.com,Week,2026-08-31,Project,Riyadh Capital Bank,P004,90
+jana.saeed@firm.com,Week,2026-08-31,Other,,,10
+jana.saeed@firm.com,Week,2026-09-07,Project,Riyadh Capital Bank,P004,90
+jana.saeed@firm.com,Week,2026-09-07,Other,,,10
+jana.saeed@firm.com,Week,2026-09-14,Project,Riyadh Capital Bank,P004,90
+jana.saeed@firm.com,Week,2026-09-14,Other,,,10
+jana.saeed@firm.com,Week,2026-09-21,Project,Riyadh Capital Bank,P004,90
+jana.saeed@firm.com,Week,2026-09-21,Other,,,10
+jana.saeed@firm.com,Week,2026-09-28,Project,Riyadh Capital Bank,P004,90
+jana.saeed@firm.com,Week,2026-09-28,Other,,,10
+jana.saeed@firm.com,Week,2026-10-05,Project,Riyadh Capital Bank,P004,90
+jana.saeed@firm.com,Week,2026-10-05,Other,,,10

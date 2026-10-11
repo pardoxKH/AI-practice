@@ -1,0 +1,7 @@
+requisition_id,profile,seniority,quantity,linked_project_id,target_join_date,status
+H001,Data Engineer,Mid,2,P004,2026-12-01,Open
+H002,MLOps Engineer,Senior,1,P003,2026-11-01,Open
+H003,Data Scientist,Mid,1,P003,2026-11-15,Open
+H004,GenAI Engineer,Senior,1,P002,2026-09-01,Filled
+H005,AI Architect,Lead,1,,2026-10-01,Cancelled
+H006,ML Engineer,Mid,1,P001,2027-01-15,Open
