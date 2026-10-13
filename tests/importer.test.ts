@@ -8,6 +8,7 @@ describe("importer", () => {
     expect(errorCount(errors)).toBe(0);
     expect(data.resources).toHaveLength(18);
     expect(data.users).toHaveLength(13);
+    expect(data.utilization).toHaveLength(96);
   });
 
   it("reports bad enums, dates, duplicates and broken links per tab", () => {
@@ -33,5 +34,34 @@ describe("importer", () => {
   it("reports missing columns instead of guessing", () => {
     const { errors } = validateAll({ users: parseCsv("email,name\na@b.com,A") });
     expect(errors.users).toEqual(['missing column "role"']);
+  });
+});
+
+describe("utilization tab", () => {
+  const resources = parseCsv(
+    "resource_id,full_name,email,employment_type,profile,seniority,skills,line_manager,join_date,status\nR001,A,a@firm.com,FTE,ML Engineer,,,,,Active",
+  );
+  const util = (rows: string[]) => parseCsv(["email,period_type,period_start,utilization_pct", ...rows].join("\n"));
+
+  it("accepts one overall row per person per period", () => {
+    const { data, errors } = validateAll({ resources, utilization: util(["a@firm.com,Week,2026-10-05,60", "A@firm.com,Week,2026-10-12,80"]) });
+    expect(errors.utilization).toEqual([]);
+    expect(data.utilization.map((u) => u.utilization_pct)).toEqual([60, 80]);
+  });
+
+  it("rejects per-engagement rows for the same period, bad values and unknown people", () => {
+    const { errors } = validateAll({
+      resources,
+      utilization: util(["a@firm.com,Week,2026-10-05,60", "a@firm.com,Week,2026-10-05,20", "a@firm.com,Week,2026-10-12,120", "x@firm.com,Week,2026-10-05,50"]),
+    });
+    const text = errors.utilization.join("\n");
+    expect(text).toMatch(/row 3: duplicate email \+ period_type \+ period_start/);
+    expect(text).toMatch(/row 4: utilization_pct must be 0-100/);
+    expect(text).toMatch(/x@firm.com: not in the resources tab/);
+  });
+
+  it("flags Week and Month rows for the same person and month", () => {
+    const { errors } = validateAll({ resources, utilization: util(["a@firm.com,Month,2026-10-01,70", "a@firm.com,Week,2026-10-05,60"]) });
+    expect(errors.utilization).toEqual(["a@firm.com has both Week and Month rows for 2026-10; send one or the other"]);
   });
 });

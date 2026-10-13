@@ -74,21 +74,32 @@ export const schemas = {
     stakeholder_map_link: opt,
     source_opportunity_id: opt,
   }),
+  // Validated now so the ops file can be checked early; loaded into the app in Phase 2.
+  // One overall % per person per period: the engagement split comes from planned allocations.
+  utilization: z.object({
+    email,
+    period_type: z.enum(["Week", "Month"]),
+    period_start: date,
+    utilization_pct: pct,
+  }),
 } as const;
 
 export type TabName = keyof typeof schemas;
 export type TabRows = { [K in TabName]: z.output<(typeof schemas)[K]>[] };
 export type ImportResult = { data: TabRows; errors: Record<TabName, string[]> };
 
-/** Tabs loaded in Phase 1, in dependency order. */
+/** Tabs validated by the importer, in dependency order. */
 export const TABS = Object.keys(schemas) as TabName[];
-const ID_COLUMN: Partial<Record<TabName, string>> = {
-  users: "email",
-  profiles: "profile",
-  settings: "key",
-  resources: "resource_id",
-  opportunities: "opportunity_id",
-  projects: "project_id",
+/** Tabs that may be missing from an input folder without an error. */
+const OPTIONAL_TABS: TabName[] = ["projects", "profiles", "utilization"];
+const KEY_COLUMNS: Partial<Record<TabName, string[]>> = {
+  users: ["email"],
+  profiles: ["profile"],
+  settings: ["key"],
+  resources: ["resource_id"],
+  opportunities: ["opportunity_id"],
+  projects: ["project_id"],
+  utilization: ["email", "period_type", "period_start"],
 };
 
 export function parseCsv(content: string): Record<string, string>[] {
@@ -109,13 +120,16 @@ export function validateTab<K extends TabName>(tab: K, rows: Record<string, stri
       for (const issue of res.error.issues) errors.push(`row ${line}: ${issue.path.join(".")} ${issue.message}`);
       return;
     }
-    const idCol = ID_COLUMN[tab];
-    const id = idCol ? String((res.data as Record<string, unknown>)[idCol]).toLowerCase() : "";
-    if (idCol && seen.has(id)) {
-      errors.push(`row ${line}: duplicate ${idCol} "${(res.data as Record<string, unknown>)[idCol]}"`);
-      return;
+    const keyCols = KEY_COLUMNS[tab];
+    if (keyCols) {
+      const row = res.data as Record<string, unknown>;
+      const id = keyCols.map((c) => String(row[c]).toLowerCase()).join("|");
+      if (seen.has(id)) {
+        errors.push(`row ${line}: duplicate ${keyCols.join(" + ")} "${keyCols.map((c) => row[c]).join(", ")}"`);
+        return;
+      }
+      seen.add(id);
     }
-    seen.add(id);
     (out as unknown[]).push(res.data);
   });
   return out;
@@ -140,6 +154,21 @@ function crossCheck(data: TabRows, errors: Record<TabName, string[]>) {
     if (p.source_opportunity_id && !oppIds.has(p.source_opportunity_id))
       errors.projects.push(`${p.project_id}: source opportunity "${p.source_opportunity_id}" is not in the opportunities tab`);
   });
+  checkUtilization(data, errors.utilization);
+}
+
+/** Unknown emails are reported, not dropped; a person can't have both Week and Month rows for the same month. */
+function checkUtilization(data: TabRows, errors: string[]) {
+  const emails = new Set(data.resources.map((r) => r.email));
+  const unknown = new Set(data.utilization.map((u) => u.email).filter((e) => !emails.has(e)));
+  for (const e of unknown) errors.push(`${e}: not in the resources tab`);
+  const months = new Set(data.utilization.filter((u) => u.period_type === "Month").map((u) => `${u.email}|${u.period_start.slice(0, 7)}`));
+  const clashes = new Set(
+    data.utilization
+      .filter((u) => u.period_type === "Week" && months.has(`${u.email}|${u.period_start.slice(0, 7)}`))
+      .map((u) => `${u.email} has both Week and Month rows for ${u.period_start.slice(0, 7)}; send one or the other`),
+  );
+  errors.push(...clashes);
 }
 
 export const splitIds = (s: string) => s.split(/[;,]/).map((x) => x.trim()).filter(Boolean);
@@ -160,7 +189,7 @@ export function loadCsvDir(dir: string): ImportResult {
     else missingTabs.push(tab);
   }
   const result = validateAll(raw);
-  for (const tab of missingTabs) if (tab !== "projects" && tab !== "profiles") result.errors[tab].push(`file ${tab}.csv not found in ${dir}`);
+  for (const tab of missingTabs) if (!OPTIONAL_TABS.includes(tab)) result.errors[tab].push(`file ${tab}.csv not found in ${dir}`);
   return result;
 }
 

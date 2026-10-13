@@ -12,8 +12,8 @@ Scenarios built in on purpose, so every dashboard view has something to show:
 - Hiring gaps: Data Engineer (P003/P004) and MLOps/Data Scientist (P003) with open requisitions H001-H003; H004 filled by R012 (candidate C012 Joined).
 - Pipeline: 13 opportunities across all 6 stages + Lost + On hold, USD and SAR; O013 is past its expected close date.
 - Closed-Won O009-O012 link to projects P001-P004 via projects.source_opportunity_id.
-- Utilization: weekly ops-style rows (6 weeks); Bench and Leave rows fill each person to ~100% as ops reports typically do.
-  Trainees carry a 10% 'Other' row for training time. Accelerator work is reported as 'Investment' with client 'Internal'.
+- Utilization: weekly, one overall % per person per week (6 weeks), as ops report it. Weeks fully on leave are left out.
+  The engagement/client split is not in this tab; the tracker derives it from project_assignments.
 - Currency: USD and SAR; usd_to_sar_rate = 3.75 in settings.
 
 Files: `applied-ai-tracker-DUMMY-sample-data.xlsx` (one tab per schema tab, plus README) and `csv/<tab>.csv`.
