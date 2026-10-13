@@ -53,7 +53,8 @@ SEED_DIR=path/to/real-csvs npm run db:seed -- --reset  # replace the loaded tabs
 
 Phase 1 loads `users`, `profiles`, `settings`, `resources`, `opportunities` and `projects` (projects only so Closed-Won
 handoffs get the next project ID). The `utilization` tab is validated now (one overall % per person per period, as ops
-report it; the engagement split comes from planned allocations) and loaded in Phase 2. Other tabs are read in later phases.
+report it; the engagement split comes from planned allocations) and loaded in Phase 2. `project_assignments` is validated too: each row points at a project (Project or Investment
+time) or at an opportunity (Presales time). Other tabs are read in later phases.
 
 ## Code map
 

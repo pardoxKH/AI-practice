@@ -14,6 +14,7 @@ Scenarios built in on purpose, so every dashboard view has something to show:
 - Closed-Won O009-O012 link to projects P001-P004 via projects.source_opportunity_id.
 - Utilization: weekly, one overall % per person per week (6 weeks), as ops report it. Weeks fully on leave are left out.
   The engagement/client split is not in this tab; the tracker derives it from project_assignments.
+- project_assignments: project rows use project_id; presales rows on open opportunities use opportunity_id (10-15%).
 - Currency: USD and SAR; usd_to_sar_rate = 3.75 in settings.
 
 Files: `applied-ai-tracker-DUMMY-sample-data.xlsx` (one tab per schema tab, plus README) and `csv/<tab>.csv`.

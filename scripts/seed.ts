@@ -11,7 +11,7 @@ const { data, errors } = loadCsvDir(dir);
 
 for (const [tab, rows] of Object.entries(data)) {
   const errs = errors[tab as keyof typeof errors];
-  console.log(`${tab.padEnd(14)} ${String(rows.length).padStart(4)} rows  ${errs.length ? `${errs.length} errors` : "ok"}`);
+  console.log(`${tab.padEnd(20)} ${String(rows.length).padStart(4)} rows  ${errs.length ? `${errs.length} errors` : "ok"}`);
   for (const e of errs) console.log(`    - ${e}`);
 }
 if (errorCount(errors)) {

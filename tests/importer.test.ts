@@ -65,3 +65,34 @@ describe("utilization tab", () => {
     expect(errors.utilization).toEqual(["a@firm.com has both Week and Month rows for 2026-10; send one or the other"]);
   });
 });
+
+describe("project_assignments tab", () => {
+  const sample = loadCsvDir(path.join(__dirname, "..", "data", "sample"));
+  const header = "project_id,opportunity_id,resource_id,role_on_project,allocation_pct,assigned_from,assigned_to";
+  const check = (rows: string[]) =>
+    validateAll({
+      resources: parseCsv("resource_id,full_name,email,employment_type,profile,seniority,skills,line_manager,join_date,status\nR001,A,a@firm.com,FTE,ML Engineer,,,,,Active"),
+      projects: [],
+      opportunities: [],
+      project_assignments: parseCsv([header, ...rows].join("\n")),
+    }).errors.project_assignments;
+
+  it("links presales rows in the sample to opportunities", () => {
+    const presales = sample.data.project_assignments.filter((a) => a.opportunity_id);
+    expect(presales.length).toBeGreaterThan(0);
+    expect(presales.every((a) => !a.project_id)).toBe(true);
+  });
+
+  it("needs exactly one of project_id or opportunity_id", () => {
+    const errs = check([",,R001,Presales,10,2026-10-01,2026-10-31", "P001,O001,R001,Lead,10,2026-10-01,2026-10-31"]).join("\n");
+    expect(errs).toMatch(/row 2: project_id fill in exactly one/);
+    expect(errs).toMatch(/row 3: project_id fill in exactly one/);
+  });
+
+  it("reports links to unknown projects, opportunities and people", () => {
+    const errs = check(["P999,,R001,Lead,50,2026-10-01,2026-10-31", ",O999,R002,Presales,10,2026-10-01,2026-10-31"]).join("\n");
+    expect(errs).toMatch(/project "P999" is not in the projects tab/);
+    expect(errs).toMatch(/opportunity "O999" is not in the opportunities tab/);
+    expect(errs).toMatch(/resource "R002" is not in the resources tab/);
+  });
+});

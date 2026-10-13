@@ -74,7 +74,20 @@ export const schemas = {
     stakeholder_map_link: opt,
     source_opportunity_id: opt,
   }),
-  // Validated now so the ops file can be checked early; loaded into the app in Phase 2.
+  // Validated now so the files can be checked early; loaded into the app in Phase 2.
+  // Each row points at exactly one of a project (Project or Investment time) or an opportunity (Presales time).
+  project_assignments: z
+    .object({
+      project_id: opt,
+      opportunity_id: opt,
+      resource_id: text,
+      role_on_project: text,
+      allocation_pct: pct,
+      assigned_from: date,
+      assigned_to: date,
+    })
+    .refine((a) => !!a.project_id !== !!a.opportunity_id, { message: "fill in exactly one of project_id or opportunity_id", path: ["project_id"] })
+    .refine((a) => a.assigned_to >= a.assigned_from, { message: "can't be before assigned_from", path: ["assigned_to"] }),
   // One overall % per person per period: the engagement split comes from planned allocations.
   utilization: z.object({
     email,
@@ -91,7 +104,7 @@ export type ImportResult = { data: TabRows; errors: Record<TabName, string[]> };
 /** Tabs validated by the importer, in dependency order. */
 export const TABS = Object.keys(schemas) as TabName[];
 /** Tabs that may be missing from an input folder without an error. */
-const OPTIONAL_TABS: TabName[] = ["projects", "profiles", "utilization"];
+const OPTIONAL_TABS: TabName[] = ["projects", "profiles", "project_assignments", "utilization"];
 const KEY_COLUMNS: Partial<Record<TabName, string[]>> = {
   users: ["email"],
   profiles: ["profile"],
@@ -106,10 +119,16 @@ export function parseCsv(content: string): Record<string, string>[] {
   return parse(content, { columns: true, skip_empty_lines: true, trim: true, bom: true });
 }
 
+function columnsOf(schema: z.ZodTypeAny): string[] {
+  let s = schema;
+  while (s instanceof z.ZodEffects) s = s.innerType();
+  return Object.keys((s as z.AnyZodObject).shape);
+}
+
 export function validateTab<K extends TabName>(tab: K, rows: Record<string, string>[], errors: string[]): TabRows[K] {
   const out: TabRows[K] = [];
   const seen = new Set<string>();
-  const expected = Object.keys(schemas[tab].shape);
+  const expected = columnsOf(schemas[tab]);
   const missing = rows.length ? expected.filter((c) => !(c in rows[0])) : [];
   for (const c of missing) errors.push(`missing column "${c}"`);
   if (missing.length) return out;
@@ -140,6 +159,7 @@ function crossCheck(data: TabRows, errors: Record<TabName, string[]>) {
   const profiles = new Set(data.profiles.map((p) => p.profile));
   const resourceIds = new Set(data.resources.map((r) => r.resource_id));
   const oppIds = new Set(data.opportunities.map((o) => o.opportunity_id));
+  const projectIds = new Set(data.projects.map((p) => p.project_id));
   if (profiles.size) {
     data.resources.forEach((r) => {
       if (!profiles.has(r.profile)) errors.resources.push(`${r.resource_id}: profile "${r.profile}" is not in the profiles tab`);
@@ -153,6 +173,13 @@ function crossCheck(data: TabRows, errors: Record<TabName, string[]>) {
   data.projects.forEach((p) => {
     if (p.source_opportunity_id && !oppIds.has(p.source_opportunity_id))
       errors.projects.push(`${p.project_id}: source opportunity "${p.source_opportunity_id}" is not in the opportunities tab`);
+  });
+  data.project_assignments.forEach((a) => {
+    const where = `${a.resource_id} on ${a.project_id || a.opportunity_id}`;
+    if (!resourceIds.has(a.resource_id)) errors.project_assignments.push(`${where}: resource "${a.resource_id}" is not in the resources tab`);
+    if (a.project_id && !projectIds.has(a.project_id)) errors.project_assignments.push(`${where}: project "${a.project_id}" is not in the projects tab`);
+    if (a.opportunity_id && !oppIds.has(a.opportunity_id))
+      errors.project_assignments.push(`${where}: opportunity "${a.opportunity_id}" is not in the opportunities tab`);
   });
   checkUtilization(data, errors.utilization);
 }
