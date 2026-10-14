@@ -3,11 +3,24 @@ import { Bars } from "@/components/Bars";
 import { Rag } from "@/components/Rag";
 import { today } from "@/lib/dates";
 import { getDb } from "@/lib/db";
-import { PIPELINE_STAGES, STAGE_SHORT } from "@/lib/domain";
+import { isActiveProject, PIPELINE_STAGES, STAGE_SHORT } from "@/lib/domain";
+import { defaultPeriodType, overAllocations, peopleHealth, practiceUtilization, underUtilized, weeksFrom } from "@/lib/people";
 import { canView } from "@/lib/permissions";
 import { byStage, formatMoney, growthHealth, needsAttention, pipelineKpis } from "@/lib/pipeline";
+import { deliveryHealth, isStale, latestUpdates } from "@/lib/projects";
 import { displayCurrency, requireUser } from "@/lib/session";
-import { getSettings, listOpportunities, listResources, snapshotPipelineIfDue } from "@/lib/store";
+import {
+  getSettings,
+  listAssignments,
+  listOpportunities,
+  listProjects,
+  listResources,
+  listStatusUpdates,
+  listUtilization,
+  snapshotPipelineIfDue,
+} from "@/lib/store";
+
+type Item = { key: string; kind: string; cls: string; href: string; title: string; sub: string; detail: string };
 
 export default async function Overview() {
   const user = await requireUser();
@@ -28,6 +41,71 @@ export default async function Overview() {
   const growth = growthHealth(opps, s, now);
   const attention = needsAttention(opps, s, now);
   const stages = byStage(opps, ccy, s, now).filter((r) => (PIPELINE_STAGES as readonly string[]).includes(r.stage));
+
+  const showProjects = canView(user.role, "projects");
+  const projects = showProjects ? listProjects(db) : [];
+  const active = projects.filter(isActiveProject);
+  const delivery = deliveryHealth(projects);
+  const latest = latestUpdates(showProjects ? listStatusUpdates(db) : []);
+  const util = listUtilization(db);
+  const periodType = defaultPeriodType(util);
+  const practice = practiceUtilization(util, resources, periodType);
+  const people = peopleHealth(practice, s);
+  const under = underUtilized(util, resources, s, periodType, practice.period);
+  const over = overAllocations(resources, listAssignments(db), weeksFrom(now, 12));
+
+  const items: Item[] = [
+    ...active
+      .filter((p) => p.status === "Off track" || p.status === "At risk")
+      .sort((a, b) => (a.status === "Off track" ? -1 : 1) - (b.status === "Off track" ? -1 : 1))
+      .map((p) => ({
+        key: `p-${p.project_id}`,
+        kind: p.status,
+        cls: p.status === "Off track" ? "overdue" : "aging",
+        href: `/projects/${p.project_id}`,
+        title: p.project_name,
+        sub: `${p.client_name} · ${p.progress_pct}% done`,
+        detail: latest.get(p.project_id)?.key_risks_issues || "No risks recorded",
+      })),
+    ...active
+      .filter((p) => isStale(p, latest.get(p.project_id), s, now))
+      .map((p) => ({
+        key: `s-${p.project_id}`,
+        kind: "Stale",
+        cls: "stale",
+        href: `/projects/${p.project_id}`,
+        title: p.project_name,
+        sub: p.client_name,
+        detail: latest.get(p.project_id) ? `Last update for the week of ${latest.get(p.project_id)!.week_start}` : "No weekly update yet",
+      })),
+    ...attention.map((a) => ({
+      key: `o-${a.opportunity.opportunity_id}`,
+      kind: a.kind,
+      cls: a.kind.toLowerCase(),
+      href: `/pipeline/${a.opportunity.opportunity_id}`,
+      title: a.opportunity.opportunity_name,
+      sub: `${a.opportunity.client_name} · ${STAGE_SHORT[a.opportunity.stage]}`,
+      detail: a.detail,
+    })),
+    ...over.map((o) => ({
+      key: `x-${o.resource.resource_id}`,
+      kind: "Over-allocated",
+      cls: "overdue",
+      href: `/resources/${o.resource.resource_id}`,
+      title: o.resource.full_name,
+      sub: o.resource.profile,
+      detail: `Planned ${o.peakPct}% from the week of ${o.firstWeek}`,
+    })),
+    ...under.map((u) => ({
+      key: `u-${u.resource.resource_id}`,
+      kind: "Under-utilized",
+      cls: "aging",
+      href: `/resources/${u.resource.resource_id}`,
+      title: u.resource.full_name,
+      sub: `${u.resource.profile}${u.resource.employment_type === "Trainee" ? " · trainee" : ""}`,
+      detail: `${u.pct}% in the ${periodType.toLowerCase()} of ${practice.period}, below ${s.underutilized_below_pct}%`,
+    })),
+  ];
 
   return (
     <>
@@ -51,16 +129,30 @@ export default async function Overview() {
           </>
         )}
         <Kpi label="Practice headcount" value={String(ftes + trainees)} foot={`${ftes} FTE · ${trainees} trainees${onLeave ? ` · ${onLeave} on leave` : ""}`} href="/resources" />
-        <Pending label="Active projects" phase={2} />
-        <Pending label="Practice utilization" phase={2} />
+        {showProjects && (
+          <>
+            <Kpi label="Active projects" value={String(active.length)} foot={`${projects.filter((p) => p.is_draft).length} drafts awaiting setup`} href="/projects" />
+            <Kpi label="Projects at risk or off track" value={String(delivery.atRisk + delivery.offTrack)} foot={`${delivery.offTrack} off track · ${delivery.atRisk} at risk`} href="/projects" />
+          </>
+        )}
+        <Kpi
+          label="Practice utilization"
+          value={practice.pct === null ? "–" : `${practice.pct}%`}
+          foot={practice.period ? `FTEs, ${periodType.toLowerCase()} of ${practice.period} · target ${s.utilization_target_pct}%` : "No ops report loaded"}
+          href="/utilization"
+        />
         <Pending label="Open roles" phase={3} />
       </div>
 
       <div className="card section">
         <h2>Practice health</h2>
         <div className="grid health" style={{ marginBottom: 0 }}>
-          <HealthItem title="Delivery" detail="Project status, from Phase 2" value="Pending" />
-          <HealthItem title="People" detail={`Utilization vs ${s.utilization_target_pct}% target, from Phase 2`} value="Pending" />
+          {showProjects ? (
+            <HealthItem title="Delivery" detail={delivery.reason} value={delivery.active ? delivery.rag : "Pending"} />
+          ) : (
+            <HealthItem title="Delivery" detail="Projects are not visible to your role" value="Pending" />
+          )}
+          <HealthItem title="People" detail={people.reason} value={people.rag} />
           {showPipeline ? (
             <HealthItem title="Growth" detail={growth.reason} value={growth.rag} />
           ) : (
@@ -70,38 +162,37 @@ export default async function Overview() {
         </div>
       </div>
 
-      {showPipeline && (
-        <div className="grid two section">
-          <div className="card">
-            <h2>Needs attention</h2>
-            {attention.length === 0 ? (
-              <p className="muted">Nothing overdue or aging in the pipeline.</p>
-            ) : (
-              <div className="table-wrap">
-                <table>
-                  <tbody>
-                    {attention.map((a) => (
-                      <tr key={a.opportunity.opportunity_id}>
-                        <td>
-                          <span className={`flag ${a.kind.toLowerCase()}`}>{a.kind}</span>
-                        </td>
-                        <td>
-                          <Link href={`/pipeline/${a.opportunity.opportunity_id}`}>{a.opportunity.opportunity_name}</Link>
-                          <div className="small muted">
-                            {a.opportunity.client_name} · {STAGE_SHORT[a.opportunity.stage]}
-                          </div>
-                        </td>
-                        <td className="small muted">{a.detail}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <p className="small muted" style={{ marginBottom: 0 }}>
-              Aging means more than {s.stage_aging_alert_days} days in the current stage.
-            </p>
-          </div>
+      <div className="grid two section">
+        <div className="card">
+          <h2>Needs attention</h2>
+          {items.length === 0 ? (
+            <p className="muted">Nothing needs attention right now.</p>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <tbody>
+                  {items.map((a) => (
+                    <tr key={a.key}>
+                      <td>
+                        <span className={`flag ${a.cls}`}>{a.kind}</span>
+                      </td>
+                      <td>
+                        <Link href={a.href}>{a.title}</Link>
+                        <div className="small muted">{a.sub}</div>
+                      </td>
+                      <td className="small muted">{a.detail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="small muted" style={{ marginBottom: 0 }}>
+            {showPipeline && `Aging means more than ${s.stage_aging_alert_days} days in the current stage. `}
+            {showProjects && `Stale means no weekly update for more than ${s.stale_update_days} days.`}
+          </p>
+        </div>
+        {showPipeline && (
           <div className="card">
             <h2>Pipeline by stage ({ccy})</h2>
             <Bars
@@ -119,8 +210,8 @@ export default async function Overview() {
               Value and count per stage. Closed-Won is shown lighter because it is no longer open pipeline.
             </p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 }

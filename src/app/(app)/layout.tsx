@@ -14,7 +14,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const links = [
     { href: "/", label: "Overview" },
     ...(canView(user.role, "opportunities") ? [{ href: "/pipeline", label: "Pipeline" }] : []),
+    ...(canView(user.role, "projects") ? [{ href: "/projects", label: "Projects" }] : []),
     { href: "/resources", label: "Resources" },
+    { href: "/utilization", label: "Utilization" },
     ...(canView(user.role, "users") ? [{ href: "/admin/users", label: "Users" }] : []),
     ...(canView(user.role, "settings") ? [{ href: "/admin/settings", label: "Settings" }] : []),
     ...(canView(user.role, "audit") ? [{ href: "/admin/audit", label: "Audit trail" }] : []),

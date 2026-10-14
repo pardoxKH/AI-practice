@@ -1,9 +1,19 @@
 import path from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { type DB, openDb, seedFromDir } from "@/lib/db";
-import { access, canEdit } from "@/lib/permissions";
+import { access, canEdit, canEditProject, canSeeFinancials } from "@/lib/permissions";
 import {
+  addAssignment,
   createOpportunity,
+  deleteAssignment,
+  getProject,
+  importUtilization,
+  listAssignments,
+  listExpectedTeam,
+  listStatusUpdates,
+  listUtilization,
+  saveProject,
+  saveStatusUpdate,
   getOpportunity,
   getSettings,
   listAudit,
@@ -119,5 +129,73 @@ describe("data source badge", () => {
     expect(isDummyData(db)).toBe(true);
     db.prepare("INSERT INTO audit_log (at, actor_email, entity, entity_id, action, new_value) VALUES ('x','seed','users','*','import','13 rows from data/local/tracker.xlsx')").run();
     expect(isDummyData(db)).toBe(false);
+  });
+});
+
+describe("phase 2 data", () => {
+  it("loads projects, updates, team, assignments and utilization from the sample", () => {
+    expect(listStatusUpdates(db).length).toBeGreaterThan(0);
+    expect(listExpectedTeam(db).length).toBeGreaterThan(0);
+    expect(listAssignments(db)).toHaveLength(38);
+    expect(listAssignments(db).some((a) => a.opportunity_id)).toBe(true);
+    expect(listUtilization(db)).toHaveLength(96);
+  });
+
+  it("replaces the same week's update and carries status and progress onto the project", () => {
+    const u = { project_id: "P001", week_start: "2026-10-12", status: "Off track" as const, progress_pct: 47, summary: "Slipping", key_risks_issues: "Data", next_steps: "", updated_by: actor };
+    saveStatusUpdate(db, actor, u, "2027-02-28");
+    saveStatusUpdate(db, actor, { ...u, progress_pct: 48 });
+    const weeks = listStatusUpdates(db, "P001").filter((x) => x.week_start === "2026-10-12");
+    expect(weeks).toHaveLength(1);
+    expect(weeks[0].progress_pct).toBe(48);
+    const p = getProject(db, "P001")!;
+    expect([p.status, p.progress_pct, p.forecast_end_date]).toEqual(["Off track", 48, "2027-02-28"]);
+    expect(listAudit(db, { entity: "projects", entityId: "P001" }).map((a) => a.field)).toContain("status");
+  });
+
+  it("completes a draft project when the admin saves it", () => {
+    const o = getOpportunity(db, "O003")!;
+    const { draftProjectId } = updateOpportunity(db, actor, "O003", { ...o, stage: "Closed-Won & Delivery Handoff" }, "2026-10-20");
+    const draft = getProject(db, draftProjectId!)!;
+    expect(draft.is_draft).toBe(1);
+    saveProject(db, actor, { ...draft, project_lead_email: "omar.saleh@firm.com", start_date: "2026-11-01", planned_end_date: "2027-03-31", status: "On track" });
+    expect(getProject(db, draftProjectId!)!.is_draft).toBe(0);
+  });
+
+  it("audits assignments added and removed", () => {
+    const id = addAssignment(db, actor, { project_id: "P001", opportunity_id: "", resource_id: "R003", role_on_project: "QA", allocation_pct: 20, assigned_from: "2026-10-12", assigned_to: "2026-12-31" });
+    deleteAssignment(db, actor, id);
+    expect(listAudit(db, { entity: "project_assignments", entityId: String(id) }).map((a) => a.action).sort()).toEqual(["create", "delete"]);
+  });
+
+  it("re-importing a period replaces it and reports unknown emails", () => {
+    const before = listUtilization(db);
+    const week = before.find((r) => r.period_type === "Week")!.period_start;
+    const inWeek = before.filter((r) => r.period_type === "Week" && r.period_start === week);
+    const rows = [
+      { email: inWeek[0].email.toUpperCase(), period_type: "Week" as const, period_start: week, utilization_pct: 11 },
+      { email: "ghost@firm.com", period_type: "Week" as const, period_start: week, utilization_pct: 70 },
+    ];
+    const r = importUtilization(db, actor, rows, "ops.csv");
+    expect(r.replaced).toBe(inWeek.length);
+    expect(r.unknownEmails).toEqual(["ghost@firm.com"]);
+    const after = listUtilization(db).filter((x) => x.period_type === "Week" && x.period_start === week);
+    expect(after).toHaveLength(2);
+    expect(listUtilization(db)).toHaveLength(before.length - inWeek.length + 2);
+  });
+});
+
+describe("project permissions", () => {
+  const p = { project_lead_email: "omar.saleh@firm.com" };
+  it("lets a lead edit and see financials only for their own projects", () => {
+    const omar = { email: "Omar.Saleh@firm.com", name: "Omar", role: "Project lead" as const };
+    const lina = { email: "lina.haddad@firm.com", name: "Lina", role: "Project lead" as const };
+    expect(canEditProject(omar, p)).toBe(true);
+    expect(canEditProject(lina, p)).toBe(false);
+    expect(canSeeFinancials(lina, p)).toBe(false);
+    expect(canSeeFinancials({ email: "x@firm.com", name: "L", role: "Leadership" }, p)).toBe(true);
+    expect(canEditProject({ email: "x@firm.com", name: "L", role: "Leadership" }, p)).toBe(false);
+    expect(access("HR", "projects")).toBe("none");
+    expect(access("HR", "utilization")).toBe("view");
   });
 });

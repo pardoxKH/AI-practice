@@ -71,7 +71,7 @@ export default async function Resources({ searchParams }: { searchParams: Promis
               <tr key={r.resource_id}>
                 <td className="muted">{r.resource_id}</td>
                 <td>
-                  {editable ? <Link href={`/resources/${r.resource_id}`}>{r.full_name}</Link> : r.full_name}
+                  <Link href={`/resources/${r.resource_id}`}>{r.full_name}</Link>
                   <div className="small muted">{r.email}</div>
                 </td>
                 <td>{r.profile}</td>

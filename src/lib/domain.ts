@@ -34,6 +34,11 @@ export const CURRENCIES = ["USD", "SAR"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
 export const EMPLOYMENT_TYPES = ["FTE", "Trainee"] as const;
+export const PROJECT_STATUSES = ["On track", "At risk", "Off track", "Completed", "On hold"] as const;
+export type ProjectStatus = (typeof PROJECT_STATUSES)[number] | "Draft";
+export const PROJECT_TYPES = ["Client", "POC", "Accelerator"] as const;
+export const ENGAGEMENTS = ["Project", "Investment", "Presales", "Bench"] as const;
+export type Engagement = (typeof ENGAGEMENTS)[number];
 export const RESOURCE_STATUSES = ["Active", "On leave", "Exited"] as const;
 
 export type User = { email: string; name: string; role: Role };
@@ -87,3 +92,64 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export const isOpen = (stage: Stage) => (OPEN_STAGES as readonly string[]).includes(stage);
+
+export type Project = {
+  project_id: string;
+  project_name: string;
+  project_type: (typeof PROJECT_TYPES)[number];
+  client_name: string;
+  project_lead_email: string;
+  start_date: string;
+  planned_end_date: string;
+  forecast_end_date: string;
+  status: ProjectStatus;
+  progress_pct: number;
+  currency: Currency;
+  project_value: number | null;
+  project_cost: number | null;
+  actual_cost_to_date: number | null;
+  margin_pct: number | null;
+  plan_link: string;
+  charter_link: string;
+  contract_link: string;
+  stakeholder_map_link: string;
+  source_opportunity_id: string;
+  is_draft: number;
+};
+
+export type StatusUpdate = {
+  project_id: string;
+  week_start: string;
+  status: ProjectStatus;
+  progress_pct: number;
+  summary: string;
+  key_risks_issues: string;
+  next_steps: string;
+  updated_by: string;
+};
+
+export type Milestone = { id: number; project_id: string; milestone: string; planned_date: string; actual_date: string };
+export type ExpectedTeam = {
+  id: number;
+  project_id: string;
+  profile: string;
+  quantity: number;
+  allocation_pct: number;
+  needed_from: string;
+  needed_to: string;
+};
+export type Assignment = {
+  id: number;
+  project_id: string;
+  opportunity_id: string;
+  resource_id: string;
+  role_on_project: string;
+  allocation_pct: number;
+  assigned_from: string;
+  assigned_to: string;
+};
+export type UtilizationRow = { email: string; period_type: "Week" | "Month"; period_start: string; utilization_pct: number };
+
+/** Projects that are still being delivered (not finished, paused or awaiting setup). */
+export const isActiveProject = (p: Pick<Project, "status" | "is_draft">) =>
+  !p.is_draft && p.status !== "Completed" && p.status !== "On hold";
