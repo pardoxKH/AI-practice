@@ -112,3 +112,12 @@ describe("permissions", () => {
     expect(access("HR", "users")).toBe("none");
   });
 });
+
+describe("data source badge", () => {
+  it("knows when the dummy sample is loaded", async () => {
+    const { isDummyData } = await import("@/lib/store");
+    expect(isDummyData(db)).toBe(true);
+    db.prepare("INSERT INTO audit_log (at, actor_email, entity, entity_id, action, new_value) VALUES ('x','seed','users','*','import','13 rows from data/local/tracker.xlsx')").run();
+    expect(isDummyData(db)).toBe(false);
+  });
+});

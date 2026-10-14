@@ -1,8 +1,10 @@
 import { doSignOut } from "@/app/actions";
 import { CurrencyToggle } from "@/components/CurrencyToggle";
 import { Nav } from "@/components/Nav";
+import { getDb } from "@/lib/db";
 import { canView } from "@/lib/permissions";
 import { displayCurrency, requireUser } from "@/lib/session";
+import { isDummyData } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(canView(user.role, "settings") ? [{ href: "/admin/settings", label: "Settings" }] : []),
     ...(canView(user.role, "audit") ? [{ href: "/admin/audit", label: "Audit trail" }] : []),
   ];
-  const dummy = !process.env.SEED_DIR;
+  const dummy = isDummyData(getDb());
   return (
     <>
       <header className="topbar">

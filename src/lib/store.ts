@@ -261,3 +261,11 @@ export const listSnapshots = (db: DB, weeks = 12) =>
     .all(weeks) as SnapshotRow[];
 
 export { PIPELINE_STAGES };
+
+/** True when the data came from the bundled DUMMY sample (data/sample), so the header can say so. */
+export function isDummyData(db: DB): boolean {
+  const row = db.prepare("SELECT new_value FROM audit_log WHERE action = 'import' ORDER BY id DESC LIMIT 1").get() as
+    | { new_value: string }
+    | undefined;
+  return !row || /data[\\/]sample/.test(row.new_value);
+}

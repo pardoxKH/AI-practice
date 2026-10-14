@@ -131,7 +131,7 @@ export function parseCsv(content: string): Record<string, string>[] {
 export const dropBlankRows = (rows: Record<string, string>[]) => rows.filter((r) => Object.values(r).some((v) => v !== ""));
 
 /** Validates already-parsed tabs, e.g. from an .xlsx workbook. Missing optional tabs are fine; others are errors. */
-export function validateTabs(raw: Partial<Record<TabName, Record<string, string>[]>>, source: string): ImportResult {
+export function validateTabs(raw: RawTabs, source: string): ImportResult {
   const result = validateAll(raw);
   for (const tab of TABS) if (!raw[tab] && !OPTIONAL_TABS.includes(tab)) result.errors[tab].push(`tab "${tab}" not found in ${source}`);
   return result;
@@ -238,17 +238,18 @@ export function validateAll(raw: Partial<Record<TabName, Record<string, string>[
   return { data, errors };
 }
 
-export function loadCsvDir(dir: string): ImportResult {
-  const raw: Partial<Record<TabName, Record<string, string>[]>> = {};
-  const missingTabs: TabName[] = [];
+export type RawTabs = Partial<Record<TabName, Record<string, string>[]>>;
+
+/** Reads one CSV per tab from a folder; tabs without a file are left out. */
+export function readCsvDir(dir: string): RawTabs {
+  const raw: RawTabs = {};
   for (const tab of TABS) {
     const file = path.join(dir, `${tab}.csv`);
     if (fs.existsSync(file)) raw[tab] = parseCsv(fs.readFileSync(file, "utf8"));
-    else missingTabs.push(tab);
   }
-  const result = validateAll(raw);
-  for (const tab of missingTabs) if (!OPTIONAL_TABS.includes(tab)) result.errors[tab].push(`file ${tab}.csv not found in ${dir}`);
-  return result;
+  return raw;
 }
+
+export const loadCsvDir = (dir: string): ImportResult => validateTabs(readCsvDir(dir), dir);
 
 export const errorCount = (errors: Record<string, string[]>) => Object.values(errors).reduce((n, e) => n + e.length, 0);

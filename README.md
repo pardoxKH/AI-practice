@@ -52,7 +52,9 @@ npm run db:seed -- --file data/local/tracker.xlsx --reset            # replace t
 npm run db:seed -- --file data/local/tracker.xlsx --reset --partial  # still in progress: load the rows that pass, list the rest
 ```
 
-`--dir path/to/csvs` works the same way for one CSV per tab. Put your own Google address in `BOOTSTRAP_ADMIN_EMAILS`
+Opportunities whose dates aren't known yet can get placeholder dates for a first run: add `--fill-missing-dates 2026`.
+They are random but repeatable, fall inside that year, keep any dates you did fill in, and are marked `[placeholder dates]`
+in the notes. `--dir path/to/csvs` works the same way for one CSV per tab. Put your own Google address in `BOOTSTRAP_ADMIN_EMAILS`
 (or in the `users` tab) so you can sign in once the dummy users are replaced.
 
 Phase 1 loads `users`, `profiles`, `settings`, `resources`, `opportunities` and `projects` (projects only so Closed-Won

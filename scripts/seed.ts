@@ -4,8 +4,11 @@
 //   npm run db:seed -- --dir path --check        -> validate a folder of CSVs (one per tab) only
 //   npm run db:seed -- --file book.xlsx --check  -> validate a workbook (one sheet per tab) only
 //   add --partial to load the rows that pass and list the ones skipped (for a workbook that is still in progress)
+//   add --fill-missing-dates [year] to give opportunities without dates placeholder dates in that year (default: this year)
 import { defaultDbPath, defaultSeedDir, loadTabs, openDb } from "../src/lib/db";
-import { errorCount, loadCsvDir, type ImportResult, validateTabs } from "../src/lib/importer";
+import { today } from "../src/lib/dates";
+import { errorCount, type ImportResult, readCsvDir, validateTabs } from "../src/lib/importer";
+import { fillOpportunityDates, PLACEHOLDER_NOTE } from "../src/lib/placeholders";
 import { readWorkbook } from "../src/lib/xlsx";
 
 const MAX_SHOWN = 15;
@@ -15,7 +18,15 @@ async function main() {
   const opt = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
   const file = opt("--file");
   const source = file ?? opt("--dir") ?? defaultSeedDir();
-  const { data, errors }: ImportResult = file ? validateTabs(await readWorkbook(file), file) : loadCsvDir(source);
+  const raw = file ? await readWorkbook(file) : readCsvDir(source);
+  if (args.includes("--fill-missing-dates") && raw.opportunities) {
+    const yearArg = opt("--fill-missing-dates");
+    const year = yearArg && /^\d{4}$/.test(yearArg) ? Number(yearArg) : Number(today().slice(0, 4));
+    const { rows, filled } = fillOpportunityDates(raw.opportunities, year, today());
+    raw.opportunities = rows;
+    console.log(`Gave ${filled} opportunities placeholder dates in ${year}, marked "${PLACEHOLDER_NOTE}" in their notes.\n`);
+  }
+  const { data, errors }: ImportResult = validateTabs(raw, source);
 
   for (const [tab, rows] of Object.entries(data)) {
     const errs = errors[tab as keyof typeof errors];
