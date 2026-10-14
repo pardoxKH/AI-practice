@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { errorCount, loadCsvDir, parseCsv, validateAll } from "@/lib/importer";
+import { errorCount, isRealDate, loadCsvDir, parseCsv, validateAll } from "@/lib/importer";
 
 describe("importer", () => {
   it("accepts the dummy sample data with no errors", () => {
@@ -94,5 +94,25 @@ describe("project_assignments tab", () => {
     expect(errs).toMatch(/project "P999" is not in the projects tab/);
     expect(errs).toMatch(/opportunity "O999" is not in the opportunities tab/);
     expect(errs).toMatch(/resource "R002" is not in the resources tab/);
+  });
+});
+
+describe("work-in-progress files", () => {
+  it("rejects impossible dates that Date.parse would roll over", () => {
+    expect(isRealDate("2026-09-30")).toBe(true);
+    expect(isRealDate("2026-09-31")).toBe(false);
+    expect(isRealDate("2026-02-29")).toBe(false);
+    expect(isRealDate("2028-02-29")).toBe(true);
+    expect(isRealDate("30/09/2026")).toBe(false);
+  });
+
+  it("drops blank rows, names unfinished rows once, and spells out enum typos", () => {
+    const header = "email,name,role";
+    const { data, errors } = validateAll({ users: parseCsv([header, "a@b.com,A,Admin", ",,", "c@b.com,,", "d@b.com,D,Leader"].join("\n")) });
+    expect(data.users).toHaveLength(1);
+    expect(errors.users).toEqual([
+      "row 3: unfinished, only email filled in",
+      'row 4: role "Leader" is not one of: Admin, Project lead, HR, Leadership',
+    ]);
   });
 });

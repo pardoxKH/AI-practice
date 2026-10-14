@@ -44,12 +44,16 @@ The app stores everything in SQLite (`DATABASE_PATH`, default `data/tracker.db`)
 `SEED_DIR` (default `data/sample`, the **DUMMY** data). Each tab is one CSV named after the tab, with the exact headers from
 `input-files-schema.md`; export each Google Sheet tab as CSV.
 
-To switch to the real files:
+To switch to the real data, keep the workbook (or CSVs) in `data/local/`, which git ignores, so it never reaches the repo:
 
 ```bash
-npm run db:seed -- --dir path/to/real-csvs --check   # validate only: errors listed per tab and row
-SEED_DIR=path/to/real-csvs npm run db:seed -- --reset  # replace the loaded tabs
+npm run db:seed -- --file data/local/tracker.xlsx --check            # validate only: problems listed per tab and row
+npm run db:seed -- --file data/local/tracker.xlsx --reset            # replace the loaded tabs with the workbook
+npm run db:seed -- --file data/local/tracker.xlsx --reset --partial  # still in progress: load the rows that pass, list the rest
 ```
+
+`--dir path/to/csvs` works the same way for one CSV per tab. Put your own Google address in `BOOTSTRAP_ADMIN_EMAILS`
+(or in the `users` tab) so you can sign in once the dummy users are replaced.
 
 Phase 1 loads `users`, `profiles`, `settings`, `resources`, `opportunities` and `projects` (projects only so Closed-Won
 handoffs get the next project ID). The `utilization` tab is validated now (one overall % per person per period, as ops

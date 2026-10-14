@@ -6,7 +6,14 @@ import { parse } from "csv-parse/sync";
 import { z } from "zod";
 import { ALL_STAGES, CURRENCIES, EMPLOYMENT_TYPES, RESOURCE_STATUSES, ROLES } from "./domain";
 
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be a YYYY-MM-DD date").refine((v) => !Number.isNaN(Date.parse(v)), "is not a real date");
+/** True for a real calendar date written as YYYY-MM-DD (rejects 2026-09-31, which Date.parse would roll over). */
+export function isRealDate(v: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const d = new Date(`${v}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+}
+
+const date = z.string().refine(isRealDate, (v) => ({ message: v ? `"${v}" is not a real date (use YYYY-MM-DD)` : "is required" }));
 export const optDate = z.union([z.literal(""), date]);
 const text = z.string().trim().min(1, "is required");
 const opt = z.string().trim().default("");
@@ -116,8 +123,27 @@ const KEY_COLUMNS: Partial<Record<TabName, string[]>> = {
 };
 
 export function parseCsv(content: string): Record<string, string>[] {
-  return parse(content, { columns: true, skip_empty_lines: true, trim: true, bom: true });
+  const rows: Record<string, string>[] = parse(content, { columns: true, skip_empty_lines: true, trim: true, bom: true });
+  return dropBlankRows(rows);
 }
+
+/** Spreadsheet exports often carry rows of empty cells (",,,,") below the data; they are not records. */
+export const dropBlankRows = (rows: Record<string, string>[]) => rows.filter((r) => Object.values(r).some((v) => v !== ""));
+
+/** Validates already-parsed tabs, e.g. from an .xlsx workbook. Missing optional tabs are fine; others are errors. */
+export function validateTabs(raw: Partial<Record<TabName, Record<string, string>[]>>, source: string): ImportResult {
+  const result = validateAll(raw);
+  for (const tab of TABS) if (!raw[tab] && !OPTIONAL_TABS.includes(tab)) result.errors[tab].push(`tab "${tab}" not found in ${source}`);
+  return result;
+}
+
+/** Plain-language messages for enum values, so a typo shows what was typed and what is allowed. */
+const errorMap: z.ZodErrorMap = (issue, ctx) => {
+  if (issue.code === "invalid_enum_value") {
+    return { message: issue.received === "" ? "is required" : `"${issue.received}" is not one of: ${issue.options.join(", ")}` };
+  }
+  return { message: ctx.defaultError };
+};
 
 function columnsOf(schema: z.ZodTypeAny): string[] {
   let s = schema;
@@ -134,8 +160,13 @@ export function validateTab<K extends TabName>(tab: K, rows: Record<string, stri
   if (missing.length) return out;
   rows.forEach((raw, i) => {
     const line = i + 2; // header is line 1
-    const res = schemas[tab].safeParse(raw);
+    const res = schemas[tab].safeParse(raw, { errorMap });
     if (!res.success) {
+      const filled = Object.entries(raw).filter(([k, v]) => v !== "" && expected.includes(k)).map(([k]) => k);
+      if (filled.length < 3) {
+        errors.push(`row ${line}: unfinished, only ${filled.join(", ") || "nothing"} filled in`);
+        return;
+      }
       for (const issue of res.error.issues) errors.push(`row ${line}: ${issue.path.join(".")} ${issue.message}`);
       return;
     }
