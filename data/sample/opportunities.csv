@@ -1,0 +1,14 @@
+opportunity_id,opportunity_name,client_name,stage,currency,opportunity_value,partner,bd_manager,initiation_date,stage_entered_date,expected_close_date,presales_resource_ids,notes
+O001,Fraud detection uplift,Riyadh Capital Bank,Lead Identification & Qualification,SAR,1200000,Fatima Alzahrani,Karim Aziz,2026-09-28,2026-09-28,2027-03-31,,Intro meeting with CRO office booked
+O002,HR policy assistant,Saudi Logistics Co.,Lead Identification & Qualification,USD,150000,Walid Mourad,Nadine Farah,2026-10-01,2026-10-01,2027-02-28,,Qualify budget owner
+O003,Arabic LLM chatbot,Gulf Telecom,RFP Evaluation & Solution Architecture,USD,400000,Sara Nasser,Karim Aziz,2026-08-15,2026-09-20,2026-12-15,R012; R005,Solution architecture review 15 Oct
+O004,Medical coding automation,Al Shifa Hospitals,Presales Engagement & Opportunity Shaping,SAR,2100000,Fatima Alzahrani,Nadine Farah,2026-08-25,2026-09-10,2027-01-31,R004; R001,Discovery workshop held; shaping use cases
+O005,Predictive maintenance rollout,Eastern Petrochemical Co.,Proposal Submission & Pitch Defense,SAR,3400000,Walid Mourad,Karim Aziz,2026-09-15,2026-10-02,2026-11-30,R008; R010,Follow-on from POC P006; pitch defense 21 Oct
+O006,Contract analytics platform,Al Noor Holding,Final Negotiation & Contracting,USD,380000,Sara Nasser,Nadine Farah,2026-07-20,2026-09-29,2026-10-31,R012,Follow-on from POC P005; legal review of MSA
+O007,Call centre analytics,Desert Airways,Lost,USD,520000,Walid Mourad,Karim Aziz,2026-05-10,2026-08-28,2026-08-31,R007,Lost on price to a regional competitor
+O008,Customer churn modelling,Gulf Telecom,On hold,SAR,750000,Sara Nasser,Karim Aziz,2026-06-01,2026-09-05,2027-01-31,,Client budget freeze until Q1 2027
+O009,Claims Triage GenAI,Acme Insurance,Closed-Won & Delivery Handoff,USD,250000,Sara Nasser,Nadine Farah,2026-03-02,2026-06-20,2026-06-30,R001,Delivered as P001
+O010,Arabic Customer Service Copilot,Gulf Telecom,Closed-Won & Delivery Handoff,SAR,1650000,Sara Nasser,Karim Aziz,2026-01-12,2026-05-05,2026-05-15,R003; R007,Delivered as P002
+O011,Retail Demand Forecasting,Najd Retail Group,Closed-Won & Delivery Handoff,SAR,900000,Fatima Alzahrani,Karim Aziz,2026-04-06,2026-07-22,2026-07-31,R004,Delivered as P003
+O012,KYC Document Intelligence,Riyadh Capital Bank,Closed-Won & Delivery Handoff,USD,420000,Fatima Alzahrani,Nadine Farah,2026-05-18,2026-08-20,2026-08-31,R010,Delivered as P004
+O013,Smart city video analytics,Capital Region Municipality,Proposal Submission & Pitch Defense,SAR,5600000,Walid Mourad,Nadine Farah,2026-06-15,2026-08-30,2026-09-30,R010; R001,Past expected close; awaiting tender committee decision

@@ -1,0 +1,6 @@
+key,value
+reporting_currency,USD
+usd_to_sar_rate,3.75
+utilization_target_pct,80
+underutilized_below_pct,50
+stale_update_days,7

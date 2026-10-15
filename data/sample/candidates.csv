@@ -1,0 +1,16 @@
+candidate_id,requisition_id,candidate_name,stage,stage_updated_on,expected_joining_date,notes
+C001,H001,Yousef Ali,Sourcing,2026-10-06,,Referral from R006
+C002,H001,Mariam Khalil,Shortlisted,2026-10-02,,
+C003,H001,Adel Shami,HR interview,2026-10-07,,
+C004,H001,Lama Hijazi,Technical interview,2026-10-08,,Strong Spark; second technical round 13 Oct
+C005,H001,Nasser Alamri,Offer and negotiation,2026-10-05,2026-12-01,Negotiating notice period
+C006,H001,Rami Halabi,Rejected,2026-09-24,,Failed technical interview
+C007,H002,Hadi Sarraf,Technical interview,2026-10-09,,
+C008,H002,Ola Naser,Withdrawn,2026-09-30,,Accepted counter-offer
+C009,H002,Majed Alsubaie,Onboarding,2026-10-01,2026-11-01,Visa processing
+C010,H003,Nour Assaf,HR interview,2026-10-08,,
+C011,H003,Ziad Karam,Shortlisted,2026-10-06,,
+C012,H004,Khalid Alharbi,Joined,2026-09-01,2026-09-01,Now R012
+C013,H004,Salma Darwish,Rejected,2026-07-20,,
+C014,H005,Tarek Mahfouz,Withdrawn,2026-08-15,,Requisition cancelled
+C015,H006,Leen Abboud,Sourcing,2026-10-09,,
