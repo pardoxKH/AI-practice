@@ -66,6 +66,50 @@ CREATE TABLE IF NOT EXISTS projects (
   source_opportunity_id TEXT NOT NULL DEFAULT '',
   is_draft INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS project_status_updates (
+  project_id TEXT NOT NULL,
+  week_start TEXT NOT NULL,
+  status TEXT NOT NULL,
+  progress_pct REAL NOT NULL,
+  summary TEXT NOT NULL,
+  key_risks_issues TEXT NOT NULL DEFAULT '',
+  next_steps TEXT NOT NULL DEFAULT '',
+  updated_by TEXT NOT NULL,
+  PRIMARY KEY (project_id, week_start)
+);
+CREATE TABLE IF NOT EXISTS project_milestones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL,
+  milestone TEXT NOT NULL,
+  planned_date TEXT NOT NULL,
+  actual_date TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS project_expected_team (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  quantity REAL NOT NULL,
+  allocation_pct REAL NOT NULL,
+  needed_from TEXT NOT NULL,
+  needed_to TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS project_assignments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL DEFAULT '',
+  opportunity_id TEXT NOT NULL DEFAULT '',
+  resource_id TEXT NOT NULL,
+  role_on_project TEXT NOT NULL,
+  allocation_pct REAL NOT NULL,
+  assigned_from TEXT NOT NULL,
+  assigned_to TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS utilization (
+  email TEXT NOT NULL COLLATE NOCASE,
+  period_type TEXT NOT NULL,
+  period_start TEXT NOT NULL,
+  utilization_pct REAL NOT NULL,
+  PRIMARY KEY (email, period_type, period_start)
+);
 CREATE TABLE IF NOT EXISTS audit_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   at TEXT NOT NULL,
@@ -97,7 +141,19 @@ export function openDb(file: string): DB {
   return db;
 }
 
-const TAB_ORDER: (keyof TabRows)[] = ["users", "profiles", "settings", "resources", "opportunities", "projects"];
+const TAB_ORDER: (keyof TabRows)[] = [
+  "users",
+  "profiles",
+  "settings",
+  "resources",
+  "opportunities",
+  "projects",
+  "project_status_updates",
+  "project_milestones",
+  "project_expected_team",
+  "project_assignments",
+  "utilization",
+];
 
 /** Replaces every loaded tab with the given rows, in one transaction, and records the load in the audit trail. */
 export function loadTabs(db: DB, data: TabRows, actor: string, source: string) {

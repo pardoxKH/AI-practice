@@ -17,27 +17,45 @@ function cellText(value: ExcelJS.CellValue): string {
   return String(value).trim();
 }
 
-export async function readWorkbook(file: string): Promise<Partial<Record<TabName, Record<string, string>[]>>> {
+type Source = string | ArrayBuffer;
+
+async function open(file: Source) {
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.readFile(file);
+  if (typeof file === "string") await wb.xlsx.readFile(file);
+  else await wb.xlsx.load(file);
+  return wb;
+}
+
+function sheetRows(sheet: ExcelJS.Worksheet): Record<string, string>[] {
+  const header: (string | null)[] = [];
+  sheet.getRow(1).eachCell({ includeEmpty: true }, (cell, col) => {
+    header[col] = cellText(cell.value) || null;
+  });
+  const rows: Record<string, string>[] = [];
+  sheet.eachRow((row, n) => {
+    if (n === 1) return;
+    const rec: Record<string, string> = {};
+    header.forEach((h, col) => {
+      if (h) rec[h] = cellText(row.getCell(col).value);
+    });
+    rows.push(rec);
+  });
+  return dropBlankRows(rows);
+}
+
+export async function readWorkbook(file: Source): Promise<Partial<Record<TabName, Record<string, string>[]>>> {
+  const wb = await open(file);
   const out: Partial<Record<TabName, Record<string, string>[]>> = {};
   for (const sheet of wb.worksheets) {
     const tab = sheet.name.trim() as TabName;
-    if (!TABS.includes(tab)) continue;
-    const header: (string | null)[] = [];
-    sheet.getRow(1).eachCell({ includeEmpty: true }, (cell, col) => {
-      header[col] = cellText(cell.value) || null;
-    });
-    const rows: Record<string, string>[] = [];
-    sheet.eachRow((row, n) => {
-      if (n === 1) return;
-      const rec: Record<string, string> = {};
-      header.forEach((h, col) => {
-        if (h) rec[h] = cellText(row.getCell(col).value);
-      });
-      rows.push(rec);
-    });
-    out[tab] = dropBlankRows(rows);
+    if (TABS.includes(tab)) out[tab] = sheetRows(sheet);
   }
   return out;
+}
+
+/** Rows of the sheet named `tab`, or of the first sheet when there is none (e.g. a standalone ops report). */
+export async function readSheet(file: Source, tab: TabName): Promise<Record<string, string>[]> {
+  const wb = await open(file);
+  const sheet = wb.worksheets.find((w) => w.name.trim() === tab) ?? wb.worksheets[0];
+  return sheet ? sheetRows(sheet) : [];
 }

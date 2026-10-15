@@ -1,8 +1,14 @@
 // Reads and writes. Every write records who changed what, and when, in audit_log.
 import type { DB } from "./db";
 import {
+  type Assignment,
   DEFAULT_SETTINGS,
+  type ExpectedTeam,
+  type Milestone,
   type Opportunity,
+  type Project,
+  type StatusUpdate,
+  type UtilizationRow,
   PIPELINE_STAGES,
   ALL_STAGES,
   type Resource,
@@ -211,6 +217,185 @@ function createDraftProject(db: DB, actor: string, o: Opportunity): string | und
   });
   audit(db, actor, "projects", id, "create", "source_opportunity_id", null, o.opportunity_id);
   return id;
+}
+
+// ---------- projects ----------
+
+export const listProjects = (db: DB) => db.prepare("SELECT * FROM projects ORDER BY project_id").all() as Project[];
+export const getProject = (db: DB, id: string) => db.prepare("SELECT * FROM projects WHERE project_id = ?").get(id) as Project | undefined;
+
+export type ProjectInput = Omit<Project, "project_id" | "is_draft"> & { project_id?: string };
+
+/** Creates or updates a project. Saving the full form completes a draft from a Closed-Won handoff. */
+export function saveProject(db: DB, actor: string, input: ProjectInput): string {
+  return db.transaction(() => {
+    const before = input.project_id ? getProject(db, input.project_id) : undefined;
+    const id = before?.project_id ?? nextId(db, "projects", "project_id", "P");
+    const row: Project = { ...input, project_id: id, project_lead_email: input.project_lead_email.trim().toLowerCase(), is_draft: 0 };
+    if (before) {
+      update(db, "projects", "project_id", id, row);
+      auditDiff(db, actor, "projects", id, before, row);
+    } else {
+      insert(db, "projects", row);
+      audit(db, actor, "projects", id, "create", "project_name", null, row.project_name);
+    }
+    return id;
+  })();
+}
+
+export const listStatusUpdates = (db: DB, projectId?: string) =>
+  (projectId
+    ? db.prepare("SELECT * FROM project_status_updates WHERE project_id = ? ORDER BY week_start DESC").all(projectId)
+    : db.prepare("SELECT * FROM project_status_updates ORDER BY project_id, week_start DESC").all()) as StatusUpdate[];
+
+/**
+ * Records the weekly update for a project and week (re-submitting the same week replaces it), and
+ * carries its status and progress onto the project. The forecast end date can be moved at the same time.
+ */
+export function saveStatusUpdate(db: DB, actor: string, u: StatusUpdate, forecastEndDate?: string) {
+  db.transaction(() => {
+    const project = getProject(db, u.project_id);
+    if (!project) throw new Error(`Project ${u.project_id} not found`);
+    const before = db.prepare("SELECT * FROM project_status_updates WHERE project_id = ? AND week_start = ?").get(u.project_id, u.week_start) as
+      | StatusUpdate
+      | undefined;
+    const key = `${u.project_id}@${u.week_start}`;
+    if (before) {
+      db.prepare(
+        `UPDATE project_status_updates SET status=@status, progress_pct=@progress_pct, summary=@summary, key_risks_issues=@key_risks_issues,
+         next_steps=@next_steps, updated_by=@updated_by WHERE project_id=@project_id AND week_start=@week_start`,
+      ).run(u);
+      auditDiff(db, actor, "project_status_updates", key, before, u);
+    } else {
+      insert(db, "project_status_updates", u);
+      audit(db, actor, "project_status_updates", key, "create", "status", null, u.status);
+    }
+    const next = {
+      ...project,
+      status: u.status,
+      progress_pct: u.progress_pct,
+      forecast_end_date: forecastEndDate === undefined ? project.forecast_end_date : forecastEndDate,
+    };
+    update(db, "projects", "project_id", project.project_id, next);
+    auditDiff(db, actor, "projects", project.project_id, project, next);
+  })();
+}
+
+export const listMilestones = (db: DB, projectId: string) =>
+  db.prepare("SELECT * FROM project_milestones WHERE project_id = ? ORDER BY planned_date, id").all(projectId) as Milestone[];
+
+export function addMilestone(db: DB, actor: string, m: Omit<Milestone, "id">) {
+  db.transaction(() => {
+    const { lastInsertRowid } = db
+      .prepare("INSERT INTO project_milestones (project_id, milestone, planned_date, actual_date) VALUES (@project_id, @milestone, @planned_date, @actual_date)")
+      .run(m);
+    audit(db, actor, "project_milestones", String(lastInsertRowid), "create", "milestone", null, `${m.project_id}: ${m.milestone}`);
+  })();
+}
+
+export function setMilestoneActual(db: DB, actor: string, id: number, actual: string) {
+  db.transaction(() => {
+    const before = db.prepare("SELECT * FROM project_milestones WHERE id = ?").get(id) as Milestone | undefined;
+    if (!before || before.actual_date === actual) return;
+    db.prepare("UPDATE project_milestones SET actual_date = ? WHERE id = ?").run(actual, id);
+    audit(db, actor, "project_milestones", String(id), "update", "actual_date", before.actual_date, actual);
+  })();
+}
+
+export const listExpectedTeam = (db: DB, projectId?: string) =>
+  (projectId
+    ? db.prepare("SELECT * FROM project_expected_team WHERE project_id = ? ORDER BY needed_from, profile").all(projectId)
+    : db.prepare("SELECT * FROM project_expected_team ORDER BY project_id, needed_from").all()) as ExpectedTeam[];
+
+export function addExpectedTeam(db: DB, actor: string, t: Omit<ExpectedTeam, "id">) {
+  db.transaction(() => {
+    const { lastInsertRowid } = db
+      .prepare(
+        "INSERT INTO project_expected_team (project_id, profile, quantity, allocation_pct, needed_from, needed_to) VALUES (@project_id, @profile, @quantity, @allocation_pct, @needed_from, @needed_to)",
+      )
+      .run(t);
+    audit(db, actor, "project_expected_team", String(lastInsertRowid), "create", "profile", null, `${t.project_id}: ${t.quantity} × ${t.profile} at ${t.allocation_pct}%`);
+  })();
+}
+
+export const getExpectedTeamRow = (db: DB, id: number) =>
+  db.prepare("SELECT * FROM project_expected_team WHERE id = ?").get(id) as ExpectedTeam | undefined;
+
+export function deleteExpectedTeam(db: DB, actor: string, id: number) {
+  db.transaction(() => {
+    const before = getExpectedTeamRow(db, id);
+    if (!before) return;
+    db.prepare("DELETE FROM project_expected_team WHERE id = ?").run(id);
+    audit(db, actor, "project_expected_team", String(id), "delete", "profile", `${before.project_id}: ${before.quantity} × ${before.profile}`, null);
+  })();
+}
+
+// ---------- assignments ----------
+
+export const listAssignments = (db: DB, f: { projectId?: string; opportunityId?: string; resourceId?: string } = {}) => {
+  const filters = { project_id: f.projectId, opportunity_id: f.opportunityId, resource_id: f.resourceId };
+  const set = Object.entries(filters).filter(([, v]) => v) as [string, string][];
+  const where = set.map(([c]) => `${c} = ?`);
+  const args = set.map(([, v]) => v);
+  return db
+    .prepare(`SELECT * FROM project_assignments ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY assigned_from, id`)
+    .all(...args) as Assignment[];
+};
+
+export const getAssignment = (db: DB, id: number) => db.prepare("SELECT * FROM project_assignments WHERE id = ?").get(id) as Assignment | undefined;
+
+const describeAssignment = (a: Omit<Assignment, "id">) =>
+  `${a.resource_id} on ${a.project_id || a.opportunity_id} at ${a.allocation_pct}% (${a.assigned_from} to ${a.assigned_to})`;
+
+export function addAssignment(db: DB, actor: string, a: Omit<Assignment, "id">): number {
+  return db.transaction(() => {
+    const { lastInsertRowid } = db
+      .prepare(
+        `INSERT INTO project_assignments (project_id, opportunity_id, resource_id, role_on_project, allocation_pct, assigned_from, assigned_to)
+         VALUES (@project_id, @opportunity_id, @resource_id, @role_on_project, @allocation_pct, @assigned_from, @assigned_to)`,
+      )
+      .run(a);
+    audit(db, actor, "project_assignments", String(lastInsertRowid), "create", "assignment", null, describeAssignment(a));
+    return Number(lastInsertRowid);
+  })();
+}
+
+export function deleteAssignment(db: DB, actor: string, id: number) {
+  db.transaction(() => {
+    const before = getAssignment(db, id);
+    if (!before) return;
+    db.prepare("DELETE FROM project_assignments WHERE id = ?").run(id);
+    audit(db, actor, "project_assignments", String(id), "delete", "assignment", describeAssignment(before), null);
+  })();
+}
+
+// ---------- utilization (ops report) ----------
+
+export const listUtilization = (db: DB) =>
+  db.prepare("SELECT * FROM utilization ORDER BY period_type, period_start, email").all() as UtilizationRow[];
+
+export type UtilizationImport = { rows: number; periods: string[]; replaced: number; unknownEmails: string[] };
+
+/**
+ * Loads an ops utilization report. Every period the report contains is replaced as a whole, so
+ * re-importing the same period never duplicates rows. Unknown emails are kept and reported back.
+ */
+export function importUtilization(db: DB, actor: string, rows: UtilizationRow[], source: string): UtilizationImport {
+  return db.transaction(() => {
+    const periods = [...new Set(rows.map((r) => `${r.period_type}|${r.period_start}`))].sort();
+    let replaced = 0;
+    const del = db.prepare("DELETE FROM utilization WHERE period_type = ? AND period_start = ?");
+    for (const p of periods) replaced += del.run(...p.split("|")).changes;
+    const ins = db.prepare(
+      "INSERT OR REPLACE INTO utilization (email, period_type, period_start, utilization_pct) VALUES (@email, @period_type, @period_start, @utilization_pct)",
+    );
+    for (const r of rows) ins.run({ ...r, email: r.email.toLowerCase() });
+    const known = new Set((db.prepare("SELECT email FROM resources").all() as { email: string }[]).map((r) => r.email.toLowerCase()));
+    const unknownEmails = [...new Set(rows.map((r) => r.email.toLowerCase()).filter((e) => !known.has(e)))].sort();
+    const label = periods.map((p) => p.replace("|", " ")).join(", ");
+    audit(db, actor, "utilization", "*", "import", "periods", replaced ? `${replaced} rows` : null, `${rows.length} rows for ${label} from ${source}`);
+    return { rows: rows.length, periods: periods.map((p) => p.replace("|", " ")), replaced, unknownEmails };
+  })();
 }
 
 // ---------- audit ----------

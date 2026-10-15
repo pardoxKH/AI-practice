@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
-import { ALL_STAGES, CURRENCIES, EMPLOYMENT_TYPES, RESOURCE_STATUSES, ROLES } from "./domain";
+import { ALL_STAGES, CURRENCIES, EMPLOYMENT_TYPES, PROJECT_STATUSES, RESOURCE_STATUSES, ROLES } from "./domain";
 
 /** True for a real calendar date written as YYYY-MM-DD (rejects 2026-09-31, which Date.parse would roll over). */
 export function isRealDate(v: string): boolean {
@@ -68,7 +68,7 @@ export const schemas = {
     start_date: date,
     planned_end_date: date,
     forecast_end_date: optDate,
-    status: z.enum(["On track", "At risk", "Off track", "Completed", "On hold"]),
+    status: z.enum(PROJECT_STATUSES),
     progress_pct: pct,
     currency: z.union([z.literal(""), z.enum(CURRENCIES)]).transform((v) => v || "USD"),
     project_value: optNum,
@@ -81,7 +81,25 @@ export const schemas = {
     stakeholder_map_link: opt,
     source_opportunity_id: opt,
   }),
-  // Validated now so the files can be checked early; loaded into the app in Phase 2.
+  project_status_updates: z
+    .object({
+      project_id: text,
+      week_start: date,
+      status: z.enum(PROJECT_STATUSES),
+      progress_pct: pct,
+      summary: text,
+      key_risks_issues: opt,
+      next_steps: opt,
+      updated_by: email,
+    })
+    .refine((u) => !(u.status === "At risk" || u.status === "Off track") || u.key_risks_issues, {
+      message: "is required when status is At risk or Off track",
+      path: ["key_risks_issues"],
+    }),
+  project_milestones: z.object({ project_id: text, milestone: text, planned_date: date, actual_date: optDate }),
+  project_expected_team: z
+    .object({ project_id: text, profile: text, quantity: num, allocation_pct: pct, needed_from: date, needed_to: date })
+    .refine((t) => t.needed_to >= t.needed_from, { message: "can't be before needed_from", path: ["needed_to"] }),
   // Each row points at exactly one of a project (Project or Investment time) or an opportunity (Presales time).
   project_assignments: z
     .object({
@@ -111,7 +129,15 @@ export type ImportResult = { data: TabRows; errors: Record<TabName, string[]> };
 /** Tabs validated by the importer, in dependency order. */
 export const TABS = Object.keys(schemas) as TabName[];
 /** Tabs that may be missing from an input folder without an error. */
-const OPTIONAL_TABS: TabName[] = ["projects", "profiles", "project_assignments", "utilization"];
+const OPTIONAL_TABS: TabName[] = [
+  "projects",
+  "profiles",
+  "project_status_updates",
+  "project_milestones",
+  "project_expected_team",
+  "project_assignments",
+  "utilization",
+];
 const KEY_COLUMNS: Partial<Record<TabName, string[]>> = {
   users: ["email"],
   profiles: ["profile"],
@@ -120,6 +146,7 @@ const KEY_COLUMNS: Partial<Record<TabName, string[]>> = {
   opportunities: ["opportunity_id"],
   projects: ["project_id"],
   utilization: ["email", "period_type", "period_start"],
+  project_status_updates: ["project_id", "week_start"],
 };
 
 export function parseCsv(content: string): Record<string, string>[] {
@@ -205,6 +232,18 @@ function crossCheck(data: TabRows, errors: Record<TabName, string[]>) {
     if (p.source_opportunity_id && !oppIds.has(p.source_opportunity_id))
       errors.projects.push(`${p.project_id}: source opportunity "${p.source_opportunity_id}" is not in the opportunities tab`);
   });
+  const unknownProject = (tab: "project_status_updates" | "project_milestones" | "project_expected_team") =>
+    data[tab].forEach((r) => {
+      if (!projectIds.has(r.project_id)) errors[tab].push(`project "${r.project_id}" is not in the projects tab`);
+    });
+  unknownProject("project_status_updates");
+  unknownProject("project_milestones");
+  unknownProject("project_expected_team");
+  if (profiles.size) {
+    data.project_expected_team.forEach((t) => {
+      if (!profiles.has(t.profile)) errors.project_expected_team.push(`${t.project_id}: profile "${t.profile}" is not in the profiles tab`);
+    });
+  }
   data.project_assignments.forEach((a) => {
     const where = `${a.resource_id} on ${a.project_id || a.opportunity_id}`;
     if (!resourceIds.has(a.resource_id)) errors.project_assignments.push(`${where}: resource "${a.resource_id}" is not in the resources tab`);

@@ -10,7 +10,7 @@ export default async function Audit({ searchParams }: { searchParams: Promise<{ 
   const { entity } = await searchParams;
   const rows = listAudit(getDb(), { entity: entity || undefined, limit: 300 });
   const link = (e: string, id: string) =>
-    e === "opportunities" ? <Link href={`/pipeline/${id}`}>{id}</Link> : e === "resources" && id !== "*" ? <Link href={`/resources/${id}`}>{id}</Link> : id;
+    e === "opportunities" ? <Link href={`/pipeline/${id}`}>{id}</Link> : e === "resources" && id !== "*" ? <Link href={`/resources/${id}`}>{id}</Link> : e === "projects" && id !== "*" ? <Link href={`/projects/${id}`}>{id}</Link> : id;
   return (
     <>
       <h1>Audit trail</h1>
