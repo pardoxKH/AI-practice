@@ -43,3 +43,12 @@ describe("placeholder opportunity dates", () => {
     expect(fillOpportunityDates([complete], 2026, today)).toEqual({ rows: [complete], filled: 0 });
   });
 });
+
+describe("missing info", () => {
+  it("counts placeholder dates as missing info", async () => {
+    const { issuesOf } = await import("@/lib/issues");
+    expect(issuesOf({ data_issues: "", notes: `x ${PLACEHOLDER_NOTE}` })).toEqual(["dates are placeholders, not real dates"]);
+    expect(issuesOf({ data_issues: "a is required; b is required" })).toEqual(["a is required", "b is required"]);
+    expect(issuesOf({ data_issues: "" })).toEqual([]);
+  });
+});

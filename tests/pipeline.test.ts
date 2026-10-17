@@ -6,6 +6,7 @@ const today = "2026-10-11";
 const s = DEFAULT_SETTINGS;
 const opp = (o: Partial<Opportunity>): Opportunity => ({
   opportunity_id: "O001",
+  data_issues: "",
   opportunity_name: "Test",
   client_name: "Client",
   stage: "Lead Identification & Qualification",

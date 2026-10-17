@@ -9,6 +9,7 @@ import {
   type Settings,
   type StatusUpdate,
 } from "./domain";
+import { hasIssues } from "./issues";
 import { convert, daysBetween, iso, type Rag } from "./pipeline";
 
 /** Margin %: entered manually, else (value − cost) / value. Null when there is nothing to compute from. */
@@ -108,7 +109,7 @@ export function teamCoverage(
     .sort((a, b) => b.expectedFte - a.expectedFte || a.profile.localeCompare(b.profile));
 }
 
-export type ProjectFilter = { status?: string; type?: string; client?: string; lead?: string; q?: string };
+export type ProjectFilter = { status?: string; type?: string; client?: string; lead?: string; q?: string; missing?: string };
 
 export function filterProjects(projects: Project[], f: ProjectFilter): Project[] {
   const q = f.q?.trim().toLowerCase();
@@ -118,6 +119,7 @@ export function filterProjects(projects: Project[], f: ProjectFilter): Project[]
       (!f.type || p.project_type === f.type) &&
       (!f.client || p.client_name === f.client) &&
       (!f.lead || p.project_lead_email === f.lead) &&
+      (!f.missing || hasIssues(p)) &&
       (!q || [p.project_id, p.project_name, p.client_name].some((v) => v.toLowerCase().includes(q))),
   );
 }

@@ -57,6 +57,8 @@ export type Opportunity = {
   expected_close_date: string;
   presales_resource_ids: string;
   notes: string;
+  /** Problems found when the row was imported ("" when complete). Shown as "Missing info". */
+  data_issues: string;
 };
 
 export type Resource = {
@@ -115,6 +117,8 @@ export type Project = {
   stakeholder_map_link: string;
   source_opportunity_id: string;
   is_draft: number;
+  /** Problems found when the row was imported ("" when complete). Shown as "Missing info". */
+  data_issues: string;
 };
 
 export type StatusUpdate = {
