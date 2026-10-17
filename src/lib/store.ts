@@ -148,14 +148,14 @@ export const listOpportunities = (db: DB) =>
 export const getOpportunity = (db: DB, id: string) =>
   db.prepare("SELECT * FROM opportunities WHERE opportunity_id = ?").get(id) as Opportunity | undefined;
 
-export type OpportunityInput = Omit<Opportunity, "opportunity_id" | "stage_entered_date"> & { stage_entered_date?: string };
+export type OpportunityInput = Omit<Opportunity, "opportunity_id" | "stage_entered_date" | "data_issues"> & { stage_entered_date?: string };
 
 export type SaveResult = { id: string; draftProjectId?: string };
 
 export function createOpportunity(db: DB, actor: string, input: OpportunityInput, today: string): SaveResult {
   return db.transaction(() => {
     const id = nextId(db, "opportunities", "opportunity_id", "O");
-    const row: Opportunity = { ...input, opportunity_id: id, stage_entered_date: input.stage_entered_date || today };
+    const row: Opportunity = { ...input, opportunity_id: id, stage_entered_date: input.stage_entered_date || today, data_issues: "" };
     insert(db, "opportunities", row);
     audit(db, actor, "opportunities", id, "create", "stage", null, row.stage);
     const draftProjectId = row.stage === WON_STAGE ? createDraftProject(db, actor, row) : undefined;
@@ -173,8 +173,10 @@ export function updateOpportunity(db: DB, actor: string, id: string, input: Oppo
     if (!before) throw new Error(`Opportunity ${id} not found`);
     const stageChanged = before.stage !== input.stage;
     const enteredEdited = input.stage_entered_date && input.stage_entered_date !== before.stage_entered_date;
+    // Saving through the form validates every field, so any import flag no longer applies.
     const row: Opportunity = {
       ...input,
+      data_issues: "",
       opportunity_id: id,
       stage_entered_date: stageChanged && !enteredEdited ? today : input.stage_entered_date || before.stage_entered_date,
     };
@@ -224,14 +226,15 @@ function createDraftProject(db: DB, actor: string, o: Opportunity): string | und
 export const listProjects = (db: DB) => db.prepare("SELECT * FROM projects ORDER BY project_id").all() as Project[];
 export const getProject = (db: DB, id: string) => db.prepare("SELECT * FROM projects WHERE project_id = ?").get(id) as Project | undefined;
 
-export type ProjectInput = Omit<Project, "project_id" | "is_draft"> & { project_id?: string };
+export type ProjectInput = Omit<Project, "project_id" | "is_draft" | "data_issues"> & { project_id?: string };
 
 /** Creates or updates a project. Saving the full form completes a draft from a Closed-Won handoff. */
 export function saveProject(db: DB, actor: string, input: ProjectInput): string {
   return db.transaction(() => {
     const before = input.project_id ? getProject(db, input.project_id) : undefined;
     const id = before?.project_id ?? nextId(db, "projects", "project_id", "P");
-    const row: Project = { ...input, project_id: id, project_lead_email: input.project_lead_email.trim().toLowerCase(), is_draft: 0 };
+    // Saving the full form validates every field, so any import flag no longer applies.
+    const row: Project = { ...input, project_id: id, project_lead_email: input.project_lead_email.trim().toLowerCase(), is_draft: 0, data_issues: "" };
     if (before) {
       update(db, "projects", "project_id", id, row);
       auditDiff(db, actor, "projects", id, before, row);

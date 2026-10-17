@@ -199,3 +199,30 @@ describe("project permissions", () => {
     expect(access("HR", "utilization")).toBe("view");
   });
 });
+
+describe("missing info flags", () => {
+  it("adds the data_issues column to a database made before it existed", async () => {
+    const { default: Database } = await import("better-sqlite3");
+    const os = await import("node:os");
+    const fs = await import("node:fs");
+    const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tracker-")), "old.db");
+    const old = new Database(file);
+    old.exec("CREATE TABLE opportunities (opportunity_id TEXT PRIMARY KEY); CREATE TABLE projects (project_id TEXT PRIMARY KEY);");
+    old.close();
+    const db2 = openDb(file);
+    const cols = (t: string) => (db2.prepare(`PRAGMA table_info(${t})`).all() as { name: string }[]).map((c) => c.name);
+    expect(cols("opportunities")).toContain("data_issues");
+    expect(cols("projects")).toContain("data_issues");
+    db2.close();
+  });
+
+  it("clears the flag when the row is saved in the app", () => {
+    db.prepare("UPDATE projects SET data_issues = 'planned_end_date is required' WHERE project_id = 'P001'").run();
+    db.prepare("UPDATE opportunities SET data_issues = 'stage is required' WHERE opportunity_id = 'O003'").run();
+    saveProject(db, actor, getProject(db, "P001")!);
+    const o = getOpportunity(db, "O003")!;
+    updateOpportunity(db, actor, "O003", o, "2026-10-20");
+    expect(getProject(db, "P001")!.data_issues).toBe("");
+    expect(getOpportunity(db, "O003")!.data_issues).toBe("");
+  });
+});

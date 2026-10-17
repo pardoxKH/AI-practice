@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS opportunities (
   stage_entered_date TEXT NOT NULL,
   expected_close_date TEXT NOT NULL,
   presales_resource_ids TEXT NOT NULL DEFAULT '',
-  notes TEXT NOT NULL DEFAULT ''
+  notes TEXT NOT NULL DEFAULT '',
+  data_issues TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS projects (
   project_id TEXT PRIMARY KEY,
@@ -64,7 +65,8 @@ CREATE TABLE IF NOT EXISTS projects (
   contract_link TEXT NOT NULL DEFAULT '',
   stakeholder_map_link TEXT NOT NULL DEFAULT '',
   source_opportunity_id TEXT NOT NULL DEFAULT '',
-  is_draft INTEGER NOT NULL DEFAULT 0
+  is_draft INTEGER NOT NULL DEFAULT 0,
+  data_issues TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS project_status_updates (
   project_id TEXT NOT NULL,
@@ -138,7 +140,21 @@ export function openDb(file: string): DB {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
+  migrate(db);
   return db;
+}
+
+/** Columns added after a table was first created, for databases made by an earlier version. */
+const ADDED_COLUMNS: [table: string, column: string, ddl: string][] = [
+  ["opportunities", "data_issues", "TEXT NOT NULL DEFAULT ''"],
+  ["projects", "data_issues", "TEXT NOT NULL DEFAULT ''"],
+];
+
+function migrate(db: DB) {
+  for (const [table, column, ddl] of ADDED_COLUMNS) {
+    const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+    if (!cols.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
 }
 
 const TAB_ORDER: (keyof TabRows)[] = [

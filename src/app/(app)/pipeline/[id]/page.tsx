@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MissingInfoNotice } from "@/components/MissingInfo";
 import { OpportunityForm } from "@/components/OpportunityForm";
 import { today } from "@/lib/dates";
 import { getDb } from "@/lib/db";
@@ -48,7 +49,19 @@ export default async function OpportunityPage({
         </div>
       </div>
 
-      {handoff && <div className="notice ok">Closed-Won: draft project {handoff} was created and linked to this deal. Complete it when Projects ship in Phase 2.</div>}
+      {handoff && (
+        <div className="notice ok">
+          Closed-Won: draft project {handoff} was created and linked to this deal. <Link href={`/projects/${handoff}/edit`}>Complete its setup</Link>.
+        </div>
+      )}
+      <MissingInfoNotice
+        row={o}
+        fixHint={
+          editable
+            ? "Fix it in the workbook and reload, or edit it below: saving the form clears the flag (remove “[placeholder dates]” from the notes once the dates are real)."
+            : "The admin can fix it in the workbook or in the app."
+        }
+      />
       {saved && !handoff && <div className="notice ok">Saved.</div>}
 
       <div className="grid two">

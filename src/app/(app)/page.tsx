@@ -7,6 +7,7 @@ import { isActiveProject, PIPELINE_STAGES, STAGE_SHORT } from "@/lib/domain";
 import { defaultPeriodType, overAllocations, peopleHealth, practiceUtilization, underUtilized, weeksFrom } from "@/lib/people";
 import { canView } from "@/lib/permissions";
 import { byStage, formatMoney, growthHealth, needsAttention, pipelineKpis } from "@/lib/pipeline";
+import { hasIssues } from "@/lib/issues";
 import { deliveryHealth, isStale, latestUpdates } from "@/lib/projects";
 import { displayCurrency, requireUser } from "@/lib/session";
 import {
@@ -54,7 +55,31 @@ export default async function Overview() {
   const under = underUtilized(util, resources, s, periodType, practice.period);
   const over = overAllocations(resources, listAssignments(db), weeksFrom(now, 12));
 
+  const incompleteProjects = projects.filter(hasIssues).length;
+  const incompleteOpps = opps.filter(hasIssues).length;
   const items: Item[] = [
+    ...(incompleteProjects
+      ? [{
+          key: "missing-projects",
+          kind: "Missing info",
+          cls: "missing",
+          href: "/projects?missing=1&status=all",
+          title: `${incompleteProjects} ${incompleteProjects === 1 ? "project" : "projects"}`,
+          sub: "Loaded from an incomplete workbook",
+          detail: "Blank or invalid fields; figures that depend on them may be off",
+        }]
+      : []),
+    ...(incompleteOpps
+      ? [{
+          key: "missing-opps",
+          kind: "Missing info",
+          cls: "missing",
+          href: "/pipeline?missing=1",
+          title: `${incompleteOpps} ${incompleteOpps === 1 ? "opportunity" : "opportunities"}`,
+          sub: "Loaded from an incomplete workbook",
+          detail: "Blank or invalid fields, or placeholder dates",
+        }]
+      : []),
     ...active
       .filter((p) => p.status === "Off track" || p.status === "At risk")
       .sort((a, b) => (a.status === "Off track" ? -1 : 1) - (b.status === "Off track" ? -1 : 1))

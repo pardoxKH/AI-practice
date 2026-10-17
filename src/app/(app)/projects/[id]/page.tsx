@@ -9,6 +9,7 @@ import {
   setMilestoneActualAction,
 } from "@/app/actions";
 import { ActionForm } from "@/components/ActionForm";
+import { MissingInfoNotice } from "@/components/MissingInfo";
 import { ProjectStatus } from "@/components/ProjectStatus";
 import { today } from "@/lib/dates";
 import { getDb } from "@/lib/db";
@@ -89,6 +90,10 @@ export default async function ProjectDetail({ params, searchParams }: { params: 
 
       {q.saved && <div className="notice ok">Project saved.</div>}
       {q.updated && <div className="notice ok">Weekly update for the week of {q.updated} saved.</div>}
+      <MissingInfoNotice
+        row={p}
+        fixHint={admin ? "Fix it in the workbook and reload, or use Edit details: saving clears the flag." : "The admin can fix it in the workbook or in the app."}
+      />
       {p.is_draft ? (
         <div className="notice">
           This is a draft created when the deal was marked Closed-Won. {admin ? "Complete its setup (lead, dates, status) to make it active." : "The admin still needs to complete its setup."}

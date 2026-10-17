@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
-import { ALL_STAGES, CURRENCIES, EMPLOYMENT_TYPES, PROJECT_STATUSES, RESOURCE_STATUSES, ROLES } from "./domain";
+import { ALL_STAGES, CURRENCIES, EMPLOYMENT_TYPES, OPEN_STAGES, PROJECT_STATUSES, RESOURCE_STATUSES, ROLES } from "./domain";
 
 /** True for a real calendar date written as YYYY-MM-DD (rejects 2026-09-31, which Date.parse would roll over). */
 export function isRealDate(v: string): boolean {
@@ -18,37 +18,53 @@ export const optDate = z.union([z.literal(""), date]);
 const text = z.string().trim().min(1, "is required");
 const opt = z.string().trim().default("");
 const email = z.string().trim().toLowerCase().email("must be an email");
-const num = z.string().trim().min(1, "is required").pipe(z.coerce.number({ invalid_type_error: "must be a number" }).nonnegative());
+/** "1,250,000" -> "1250000"; anything else (e.g. "1,304,02") is left as typed and fails as not a number. */
+const thousands = (v: string) => (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(v) ? v.replace(/,/g, "") : v);
+const num = z
+  .string()
+  .trim()
+  .min(1, "is required")
+  .transform(thousands)
+  .pipe(z.coerce.number({ invalid_type_error: "must be a number" }).nonnegative());
 const optNum = z.string().trim().transform((v, ctx) => {
   if (v === "") return null;
-  const n = Number(v);
+  const n = Number(thousands(v));
   if (Number.isNaN(n)) ctx.addIssue({ code: "custom", message: "must be a number" });
   return n;
 });
 const pct = num.pipe(z.number().max(100, "must be 0-100"));
+/** An enum that ignores case, so "On Hold" is read as "On hold". */
+const ienum = <const T extends string>(values: readonly [T, ...T[]]) =>
+  z
+    .string()
+    .trim()
+    .transform((v) => values.find((x) => x.toLowerCase() === v.toLowerCase()) ?? v)
+    .pipe(z.enum(values));
+/** Set by the importer on opportunities and projects loaded with missing or invalid fields; cleared when the row is saved in the app. */
+const dataIssues = z.string().default("");
 
 export const schemas = {
-  users: z.object({ email, name: text, role: z.enum(ROLES) }),
+  users: z.object({ email, name: text, role: ienum(ROLES) }),
   profiles: z.object({ profile: text, description: opt }),
   settings: z.object({ key: text, value: text }),
   resources: z.object({
     resource_id: text,
     full_name: text,
     email,
-    employment_type: z.enum(EMPLOYMENT_TYPES),
+    employment_type: ienum(EMPLOYMENT_TYPES),
     profile: text,
     seniority: opt,
     skills: opt,
     line_manager: opt,
     join_date: optDate,
-    status: z.enum(RESOURCE_STATUSES),
+    status: ienum(RESOURCE_STATUSES),
   }),
   opportunities: z.object({
     opportunity_id: text,
     opportunity_name: text,
     client_name: text,
-    stage: z.enum(ALL_STAGES),
-    currency: z.union([z.literal(""), z.enum(CURRENCIES)]).transform((v) => v || "USD"),
+    stage: ienum(ALL_STAGES),
+    currency: z.union([z.literal(""), ienum(CURRENCIES)]).transform((v) => v || "USD"),
     opportunity_value: num,
     partner: text,
     bd_manager: text,
@@ -57,20 +73,21 @@ export const schemas = {
     expected_close_date: date,
     presales_resource_ids: opt,
     notes: opt,
+    data_issues: dataIssues,
   }),
   // Projects are loaded in Phase 1 only so Closed-Won handoffs link to real project IDs.
   projects: z.object({
     project_id: text,
     project_name: text,
-    project_type: z.enum(["Client", "POC", "Accelerator"]),
+    project_type: ienum(["Client", "POC", "Accelerator"]),
     client_name: text,
     project_lead_email: email,
     start_date: date,
     planned_end_date: date,
     forecast_end_date: optDate,
-    status: z.enum(PROJECT_STATUSES),
+    status: ienum(PROJECT_STATUSES),
     progress_pct: pct,
-    currency: z.union([z.literal(""), z.enum(CURRENCIES)]).transform((v) => v || "USD"),
+    currency: z.union([z.literal(""), ienum(CURRENCIES)]).transform((v) => v || "USD"),
     project_value: optNum,
     project_cost: optNum,
     actual_cost_to_date: optNum,
@@ -80,12 +97,13 @@ export const schemas = {
     contract_link: opt,
     stakeholder_map_link: opt,
     source_opportunity_id: opt,
+    data_issues: dataIssues,
   }),
   project_status_updates: z
     .object({
       project_id: text,
       week_start: date,
-      status: z.enum(PROJECT_STATUSES),
+      status: ienum(PROJECT_STATUSES),
       progress_pct: pct,
       summary: text,
       key_risks_issues: opt,
@@ -116,7 +134,7 @@ export const schemas = {
   // One overall % per person per period: the engagement split comes from planned allocations.
   utilization: z.object({
     email,
-    period_type: z.enum(["Week", "Month"]),
+    period_type: ienum(["Week", "Month"]),
     period_start: date,
     utilization_pct: pct,
   }),
@@ -124,7 +142,8 @@ export const schemas = {
 
 export type TabName = keyof typeof schemas;
 export type TabRows = { [K in TabName]: z.output<(typeof schemas)[K]>[] };
-export type ImportResult = { data: TabRows; errors: Record<TabName, string[]> };
+/** errors: rows skipped or links that don't resolve. warnings: rows loaded but flagged as missing information. */
+export type ImportResult = { data: TabRows; errors: Record<TabName, string[]>; warnings: Record<TabName, string[]> };
 
 /** Tabs validated by the importer, in dependency order. */
 export const TABS = Object.keys(schemas) as TabName[];
@@ -172,13 +191,62 @@ const errorMap: z.ZodErrorMap = (issue, ctx) => {
   return { message: ctx.defaultError };
 };
 
-function columnsOf(schema: z.ZodTypeAny): string[] {
+function shapeOf(schema: z.ZodTypeAny): Record<string, z.ZodTypeAny> {
   let s = schema;
   while (s instanceof z.ZodEffects) s = s.innerType();
-  return Object.keys((s as z.AnyZodObject).shape);
+  return (s as z.AnyZodObject).shape;
 }
 
-export function validateTab<K extends TabName>(tab: K, rows: Record<string, string>[], errors: string[]): TabRows[K] {
+/** Columns the sheet must have. data_issues is the tracker's own, never in the sheet. */
+const columnsOf = (schema: z.ZodTypeAny) => Object.keys(shapeOf(schema)).filter((c) => c !== "data_issues");
+
+/**
+ * Opportunities and projects are shown even when incomplete (alpha: visibility first). A row that fails
+ * validation still loads if it has an ID: each bad field gets a neutral value and the problems are
+ * listed in data_issues, which the app shows as "Missing info".
+ */
+const LENIENT: Partial<Record<TabName, { id: string; name: string; fallback: Record<string, unknown> }>> = {
+  opportunities: {
+    id: "opportunity_id",
+    name: "opportunity_name",
+    fallback: { stage: OPEN_STAGES[0], opportunity_value: 0, initiation_date: "", stage_entered_date: "", expected_close_date: "" },
+  },
+  projects: {
+    id: "project_id",
+    name: "project_name",
+    fallback: { project_type: "Client", status: "On track", progress_pct: 0, start_date: "", planned_end_date: "" },
+  },
+};
+
+function lenientRow(tab: TabName, raw: Record<string, string>): { row: Record<string, unknown>; issues: string[] } | null {
+  const spec = LENIENT[tab];
+  const id = raw[spec?.id ?? ""]?.trim();
+  if (!spec || !id) return null;
+  const row: Record<string, unknown> = {};
+  const issues: string[] = [];
+  for (const [field, schema] of Object.entries(shapeOf(schemas[tab]))) {
+    if (field === "data_issues") continue;
+    const value = raw[field] ?? "";
+    const res = schema.safeParse(value, { errorMap });
+    if (res.success) {
+      row[field] = res.data;
+      continue;
+    }
+    const msg = res.error.issues[0]?.message ?? "is not valid";
+    const typed = value.trim() && !msg.includes(`"${value.trim()}"`) ? ` (was "${value.trim()}")` : "";
+    issues.push(`${field} ${msg}${typed}`);
+    if (field in spec.fallback) row[field] = spec.fallback[field];
+    else if (field === spec.name) row[field] = id;
+    else {
+      const blank = schema.safeParse("");
+      row[field] = blank.success ? blank.data : value.trim();
+    }
+  }
+  row.data_issues = issues.join("; ");
+  return { row, issues };
+}
+
+export function validateTab<K extends TabName>(tab: K, rows: Record<string, string>[], errors: string[], warnings: string[] = []): TabRows[K] {
   const out: TabRows[K] = [];
   const seen = new Set<string>();
   const expected = columnsOf(schemas[tab]);
@@ -187,7 +255,14 @@ export function validateTab<K extends TabName>(tab: K, rows: Record<string, stri
   if (missing.length) return out;
   rows.forEach((raw, i) => {
     const line = i + 2; // header is line 1
-    const res = schemas[tab].safeParse(raw, { errorMap });
+    let res = schemas[tab].safeParse(raw, { errorMap }) as z.SafeParseReturnType<unknown, unknown>;
+    if (!res.success) {
+      const lenient = lenientRow(tab, raw);
+      if (lenient) {
+        res = { success: true, data: lenient.row };
+        warnings.push(`row ${line} (${raw[LENIENT[tab]!.id].trim()}): loaded with missing info: ${lenient.issues.join("; ")}`);
+      }
+    }
     if (!res.success) {
       const filled = Object.entries(raw).filter(([k, v]) => v !== "" && expected.includes(k)).map(([k]) => k);
       if (filled.length < 3) {
@@ -272,9 +347,10 @@ export const splitIds = (s: string) => s.split(/[;,]/).map((x) => x.trim()).filt
 
 export function validateAll(raw: Partial<Record<TabName, Record<string, string>[]>>): ImportResult {
   const errors = Object.fromEntries(TABS.map((t) => [t, [] as string[]])) as Record<TabName, string[]>;
-  const data = Object.fromEntries(TABS.map((t) => [t, validateTab(t, raw[t] ?? [], errors[t])])) as TabRows;
+  const warnings = Object.fromEntries(TABS.map((t) => [t, [] as string[]])) as Record<TabName, string[]>;
+  const data = Object.fromEntries(TABS.map((t) => [t, validateTab(t, raw[t] ?? [], errors[t], warnings[t])])) as TabRows;
   crossCheck(data, errors);
-  return { data, errors };
+  return { data, errors, warnings };
 }
 
 export type RawTabs = Partial<Record<TabName, Record<string, string>[]>>;

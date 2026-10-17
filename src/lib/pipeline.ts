@@ -11,6 +11,7 @@ import {
   type Stage,
   WON_STAGE,
 } from "./domain";
+import { hasIssues } from "./issues";
 
 const DAY_MS = 86_400_000;
 
@@ -19,7 +20,7 @@ export function daysBetween(fromIso: string, toIso: string): number {
 }
 
 /** Days since the opportunity entered its current stage. */
-export const stageAgeDays = (o: Opportunity, today: string) => Math.max(0, daysBetween(o.stage_entered_date, today));
+export const stageAgeDays = (o: Opportunity, today: string) => (o.stage_entered_date ? Math.max(0, daysBetween(o.stage_entered_date, today)) : 0);
 
 /** Converts an amount between USD and SAR using the admin-maintained rate (SAR per 1 USD). */
 export function convert(amount: number, from: Currency, to: Currency, usdToSar: number): number {
@@ -47,7 +48,7 @@ export function weekStart(today: string): string {
   return iso(new Date(d.getTime() - offset * DAY_MS));
 }
 
-export const isOverdue = (o: Opportunity, today: string) => isOpen(o.stage) && o.expected_close_date < today;
+export const isOverdue = (o: Opportunity, today: string) => isOpen(o.stage) && !!o.expected_close_date && o.expected_close_date < today;
 export const isAging = (o: Opportunity, today: string, s: Pick<Settings, "stage_aging_alert_days">) =>
   isOpen(o.stage) && stageAgeDays(o, today) > s.stage_aging_alert_days;
 
@@ -157,7 +158,7 @@ export function needsAttention(opps: Opportunity[], s: Settings, today: string):
   return out.sort((a, b) => rank(a) - rank(b) || stageAgeDays(b.opportunity, today) - stageAgeDays(a.opportunity, today));
 }
 
-export type OppFilter = { stage?: string; client?: string; partner?: string; bd?: string; q?: string };
+export type OppFilter = { stage?: string; client?: string; partner?: string; bd?: string; q?: string; missing?: string };
 
 export function filterOpps(opps: Opportunity[], f: OppFilter): Opportunity[] {
   const q = f.q?.trim().toLowerCase();
@@ -167,6 +168,7 @@ export function filterOpps(opps: Opportunity[], f: OppFilter): Opportunity[] {
       (!f.client || o.client_name === f.client) &&
       (!f.partner || o.partner === f.partner) &&
       (!f.bd || o.bd_manager === f.bd) &&
+      (!f.missing || hasIssues(o)) &&
       (!q || `${o.opportunity_id} ${o.opportunity_name} ${o.client_name} ${o.notes}`.toLowerCase().includes(q)),
   );
 }

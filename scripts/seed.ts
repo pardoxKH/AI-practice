@@ -26,14 +26,21 @@ async function main() {
     raw.opportunities = rows;
     console.log(`Gave ${filled} opportunities placeholder dates in ${year}, marked "${PLACEHOLDER_NOTE}" in their notes.\n`);
   }
-  const { data, errors }: ImportResult = validateTabs(raw, source);
+  const { data, errors, warnings }: ImportResult = validateTabs(raw, source);
 
+  const list = (items: string[], mark: string) => {
+    for (const e of items.slice(0, MAX_SHOWN)) console.log(`    ${mark} ${e}`);
+    if (items.length > MAX_SHOWN) console.log(`    ... and ${items.length - MAX_SHOWN} more`);
+  };
   for (const [tab, rows] of Object.entries(data)) {
     const errs = errors[tab as keyof typeof errors];
-    console.log(`${tab.padEnd(20)} ${String(rows.length).padStart(4)} rows ok  ${errs.length ? `${errs.length} problems` : ""}`);
-    for (const e of errs.slice(0, MAX_SHOWN)) console.log(`    - ${e}`);
-    if (errs.length > MAX_SHOWN) console.log(`    ... and ${errs.length - MAX_SHOWN} more`);
+    const warns = warnings[tab as keyof typeof warnings];
+    const flagged = warns.length ? `, ${warns.length} of them with missing info` : "";
+    console.log(`${tab.padEnd(20)} ${String(rows.length).padStart(4)} rows${flagged}  ${errs.length ? `${errs.length} problems` : ""}`);
+    list(errs, "-");
+    list(warns, "~");
   }
+  if (errorCount(warnings)) console.log('\n~ rows load anyway and show a "Missing info" flag in the app until the gaps are filled.');
   const partial = args.includes("--partial");
   if (errorCount(errors) && !partial) {
     console.error(`\nFix the problems above in ${source} (or add --partial to load only the rows that pass); nothing was loaded.`);

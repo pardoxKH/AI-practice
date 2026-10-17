@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { MissingInfoFlag } from "@/components/MissingInfo";
 import { ProjectStatus } from "@/components/ProjectStatus";
 import { today } from "@/lib/dates";
 import { getDb } from "@/lib/db";
 import { isActiveProject, PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/domain";
 import { canManageProjects, canSeeFinancials } from "@/lib/permissions";
+import { hasIssues } from "@/lib/issues";
 import { formatMoney } from "@/lib/pipeline";
 import { filterProjects, isStale, latestUpdates, marginPct, moneyIn, type ProjectFilter, slippageDays } from "@/lib/projects";
 import { displayCurrency, requireView } from "@/lib/session";
@@ -23,6 +25,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
   const rows = filterProjects(all, { ...f, status: status === "all" ? undefined : status });
   const active = all.filter(isActiveProject);
   const drafts = all.filter((p) => p.is_draft);
+  const incomplete = all.filter(hasIssues);
   const options = (field: "client_name" | "project_lead_email") => [...new Set(all.map((p) => p[field]).filter(Boolean))].sort();
   const anyFinancials = rows.some((p) => canSeeFinancials(user, p));
 
@@ -45,6 +48,17 @@ export default async function Projects({ searchParams }: { searchParams: Promise
           {drafts.map((d, i) => (
             <span key={d.project_id}>{i > 0 && ", "}<Link href={`/projects/${d.project_id}/edit`}>{d.project_name}</Link></span>
           ))}
+        </div>
+      )}
+
+      {incomplete.length > 0 && !f.missing && (
+        <div className="notice missing">
+          <span aria-hidden>⚠ </span>
+          {incomplete.length} of {all.length} projects are missing information:{" "}
+          {incomplete.map((p, i) => (
+            <span key={p.project_id}>{i > 0 && ", "}<Link href={`/projects/${p.project_id}`}>{p.project_name}</Link></span>
+          ))}
+          . They are shown with a flag; figures that depend on the missing fields may be off.
         </div>
       )}
 
@@ -77,6 +91,13 @@ export default async function Projects({ searchParams }: { searchParams: Promise
           <select name="lead" defaultValue={f.lead ?? ""}>
             <option value="">All</option>
             {options("project_lead_email").map((e) => <option key={e} value={e}>{names.get(e) ?? e}</option>)}
+          </select>
+        </label>
+        <label className="f">
+          Data
+          <select name="missing" defaultValue={f.missing ?? ""}>
+            <option value="">All</option>
+            <option value="1">Missing info only</option>
           </select>
         </label>
         <label className="f">Search<input name="q" defaultValue={f.q ?? ""} placeholder="Name, client, ID" /></label>
@@ -119,7 +140,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
                   <tr key={p.project_id}>
                     <td className="muted">{p.project_id}</td>
                     <td>
-                      <Link href={`/projects/${p.project_id}`}>{p.project_name}</Link>
+                      <Link href={`/projects/${p.project_id}`}>{p.project_name}</Link> <MissingInfoFlag row={p} />
                       <div className="small muted">{p.client_name} · {p.project_type}</div>
                     </td>
                     <td><ProjectStatus status={p.status} draft={!!p.is_draft} /></td>

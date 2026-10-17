@@ -5,6 +5,7 @@ import { deliveryHealth, filterProjects, isStale, latestUpdates, marginPct, slip
 const project = (p: Partial<Project> = {}): Project => ({
   project_id: "P001",
   project_name: "Claims",
+  data_issues: "",
   project_type: "Client",
   client_name: "Acme",
   project_lead_email: "omar@firm.com",

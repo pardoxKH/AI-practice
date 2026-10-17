@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bars } from "@/components/Bars";
+import { MissingInfoFlag } from "@/components/MissingInfo";
 import { today } from "@/lib/dates";
 import { getDb } from "@/lib/db";
 import { ALL_STAGES, isOpen, OUTCOMES, PIPELINE_STAGES, STAGE_SHORT } from "@/lib/domain";
@@ -17,6 +18,7 @@ import {
   valueIn,
 } from "@/lib/pipeline";
 import { displayCurrency, requireView } from "@/lib/session";
+import { hasIssues } from "@/lib/issues";
 import { getSettings, listOpportunities } from "@/lib/store";
 
 export default async function Pipeline({ searchParams }: { searchParams: Promise<OppFilter> }) {
@@ -39,6 +41,7 @@ export default async function Pipeline({ searchParams }: { searchParams: Promise
   const bds = groupBy(scoped, "bd_manager", ccy, s);
   const options = (field: "client_name" | "partner" | "bd_manager") => [...new Set(all.map((o) => o[field]))].sort();
   const total = rows.reduce((t, o) => t + valueIn(o, ccy, s), 0);
+  const incomplete = all.filter(hasIssues).length;
 
   return (
     <>
@@ -51,6 +54,14 @@ export default async function Pipeline({ searchParams }: { searchParams: Promise
           <Link className="btn primary" href="/pipeline/new">New opportunity</Link>
         )}
       </div>
+
+      {incomplete > 0 && !f.missing && (
+        <div className="notice missing">
+          <span aria-hidden>⚠ </span>
+          {incomplete} of {all.length} opportunities are missing information (blank or invalid fields, or placeholder dates).{" "}
+          <Link href="/pipeline?missing=1">Show only those</Link>
+        </div>
+      )}
 
       <form className="filters card" method="get">
         <label className="f">
@@ -66,6 +77,13 @@ export default async function Pipeline({ searchParams }: { searchParams: Promise
         <Select name="client" label="Client" value={f.client} options={options("client_name")} />
         <Select name="partner" label="Partner" value={f.partner} options={options("partner")} />
         <Select name="bd" label="BD manager" value={f.bd} options={options("bd_manager")} />
+        <label className="f">
+          Data
+          <select name="missing" defaultValue={f.missing ?? ""}>
+            <option value="">All</option>
+            <option value="1">Missing info only</option>
+          </select>
+        </label>
         <label className="f">
           Search
           <input name="q" defaultValue={f.q ?? ""} placeholder="Name, client, notes" />
@@ -165,7 +183,7 @@ export default async function Pipeline({ searchParams }: { searchParams: Promise
                 <tr key={o.opportunity_id}>
                   <td className="muted">{o.opportunity_id}</td>
                   <td>
-                    <Link href={`/pipeline/${o.opportunity_id}`}>{o.opportunity_name}</Link>
+                    <Link href={`/pipeline/${o.opportunity_id}`}>{o.opportunity_name}</Link> <MissingInfoFlag row={o} />
                     <div className="small muted">{o.client_name}</div>
                   </td>
                   <td>{STAGE_SHORT[o.stage]}</td>
